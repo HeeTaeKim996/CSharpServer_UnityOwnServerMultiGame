@@ -39,20 +39,20 @@ namespace CSampleClient
 
                                 Console.Write("LobbyAction > ");
                                 string lobbyAction = Console.ReadLine();
-                                if(Enum.TryParse<Pr_lobbyAction>(lobbyAction, out var parsed_lobbyAction))
+                                if(Enum.TryParse<Pr_ta_lobby_action>(lobbyAction, out var parsed_lobbyAction))
                                 {
                                     msg.Push((byte)parsed_lobbyAction);
 
                                     switch (parsed_lobbyAction)
                                     {
-                                        case Pr_lobbyAction.create_room:
+                                        case Pr_ta_lobby_action.create_room:
                                             {
                                                 string room_name = Console.ReadLine();
                                                 msg.Push(room_name);
                                                 game_servers[0].Send(msg);
                                             }
                                             break;
-                                        case Pr_lobbyAction.enter_room:
+                                        case Pr_ta_lobby_action.enter_room:
                                             {
                                                 string room_name = Console.ReadLine();
                                                 msg.Push(room_name);
@@ -73,7 +73,7 @@ namespace CSampleClient
                             {
                                 Console.Write("Room Target > ");
                                 string room_target = Console.ReadLine();
-                                if (Enum.TryParse<Pr_room_target>(room_target, out var parsed_room_target))
+                                if (Enum.TryParse<Pr_ta_room_target>(room_target, out var parsed_room_target))
                                 {
                                     msg.Push((byte)parsed_room_target);
                                 }
@@ -88,17 +88,22 @@ namespace CSampleClient
 
                                 Console.Write("Room Action > ");
                                 string room_action = Console.ReadLine();
-                                if(Enum.TryParse<Pr_room_action>(room_action, out var parsed_room_action))
+                                if(Enum.TryParse<Pr_ta_room_action>(room_action, out var parsed_room_action))
                                 {
                                     msg.Push((byte)parsed_room_action);
 
                                     switch (parsed_room_action)
                                     {
-                                        case Pr_room_action.ts:
+                                        case Pr_ta_room_action.ts:
                                             {
                                                 Console.WriteLine("Test string > ");
                                                 string test_string = Console.ReadLine();
                                                 msg.Push(test_string);
+                                                game_servers[0].Send(msg);
+                                            }
+                                            break;
+                                        case Pr_ta_room_action.game_start_masterClient:
+                                            {
                                                 game_servers[0].Send(msg);
                                             }
                                             break;

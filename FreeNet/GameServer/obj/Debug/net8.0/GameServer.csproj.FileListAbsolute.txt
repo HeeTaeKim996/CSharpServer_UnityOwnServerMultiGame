@@ -16,3 +16,4 @@ C:\LearningGame\Unity\Unity_FirstOwnMultiGame\FreeNet\GameServer\obj\Debug\net8.
 C:\LearningGame\Unity\Unity_FirstOwnMultiGame\FreeNet\GameServer\obj\Debug\net8.0\GameServer.pdb
 C:\LearningGame\Unity\Unity_FirstOwnMultiGame\FreeNet\GameServer\obj\Debug\net8.0\GameServer.genruntimeconfig.cache
 C:\LearningGame\Unity\Unity_FirstOwnMultiGame\FreeNet\GameServer\obj\Debug\net8.0\ref\GameServer.dll
+C:\LearningGame\Unity\Unity_FirstOwnMultiGame\FreeNet\GameServer\obj\Debug\net8.0\GameServer.sourcelink.json

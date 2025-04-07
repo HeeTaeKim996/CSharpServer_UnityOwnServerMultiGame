@@ -1,4 +1,5 @@
 ﻿
+using System.Net.Sockets;
 using FreeNet;
 using GameServer;
 
@@ -35,6 +36,23 @@ namespace CGameServer
         public bool is_room_exists(string room_name)
         {
             return game_rooms.ContainsKey(room_name);
+        }
+
+
+
+        public CPacket Return_rooms_info_packet()
+        {
+            CPacket return_packet = CPacket.Pop_forCreate();
+            return_packet.Push((byte)(Pr_client_action.lobby_actin));
+            return_packet.Push((byte)Pr_ca_lobby__action.lobby_list_info);
+            return_packet.Push((byte)game_rooms.Count);
+            foreach(KeyValuePair<string, CGameRoom> kvp in game_rooms)
+            {
+                return_packet.Push((string)kvp.Key);
+                return_packet.Push((byte)kvp.Value.user_count);
+            }
+
+            return return_packet;
         }
     }
 }

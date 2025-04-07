@@ -32,6 +32,7 @@ namespace GameServer
             {
                 userList.Add(cGameUser);
             }
+            cGameServer.Enter_lobby(cGameUser);
         }
 
         public static void Remove_user(CGameUser cGameUser)

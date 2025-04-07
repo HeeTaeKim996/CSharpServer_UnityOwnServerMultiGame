@@ -21,7 +21,7 @@ namespace GameServer
         public void on_enter_room(CGameRoom room, bool isMasterClient)
         {
             game_room = room;
-            this.isMasterClient = this.isMasterClient;
+            this.isMasterClient = isMasterClient;
         }
         public void on_exit_room(CGameRoom room)
         {
@@ -32,7 +32,6 @@ namespace GameServer
         {
             CPacket msg = CPacket.Pop_forCopy_for_serverQueue(buffer, this);
             Program.cGameServer.Enqueue_packet(msg);
-            Console.WriteLine("CGameUser : Message tcp received Check_(1)");
         }
 
         void IPeer.Send(CPacket msg)
@@ -55,7 +54,6 @@ namespace GameServer
 
         void IPeer.Process_user_operation(CPacket msg)
         {
-            Console.WriteLine("CGameUser : Message tcp received Check_(2)");
             Pr_target target = (Pr_target)msg.Pop_byte();
 
             switch (target)
@@ -70,7 +68,6 @@ namespace GameServer
                     {
                         if(game_room != null)
                         {
-                            Console.WriteLine("CGameUser : Message tcp received Check_(3)");
                             game_room.Room_task(msg);
                         }
                         else

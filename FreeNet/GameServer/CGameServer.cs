@@ -1,5 +1,6 @@
 ﻿using CGameServer;
 using FreeNet;
+using Microsoft.VisualBasic;
 
 namespace GameServer
 {
@@ -14,7 +15,7 @@ namespace GameServer
         public CGameRoomManager roomManager = new CGameRoomManager();
 
 
-        private List<CGameUser> lobby_users = new List<CGameUser>();
+        private List<IPeer> lobby_users = new List<IPeer>();
         private object cs_lobby_users = new object();
 
 
@@ -64,15 +65,15 @@ namespace GameServer
 
         public void Lobby_task(CPacket msg)
         {
-            Pr_lobbyAction lobby_action = (Pr_lobbyAction)msg.Pop_byte();
+            Pr_ta_lobby_action lobby_action = (Pr_ta_lobby_action)msg.Pop_byte();
             switch (lobby_action)
             {
-                case Pr_lobbyAction.create_room:
+                case Pr_ta_lobby_action.create_room:
                     {
                         Create_room_requested((CGameUser)msg.owner, msg.Pop_string());
                     }
                     break;
-                case Pr_lobbyAction.enter_room:
+                case Pr_ta_lobby_action.enter_room:
                     {
                         Enter_room_requested((CGameUser)msg.owner, msg.Pop_string());
                     }
@@ -88,8 +89,31 @@ namespace GameServer
             {
                 lobby_users.Add(game_user);
             }
+            Inform_rooms_info();
+        }
+        private void Exit_lobby(CGameUser game_user)
+        {
+            lock (cs_lobby_users)
+            {
+                lobby_users.Remove(game_user);
+            }
+        }
 
-            
+        private void Inform_rooms_info()
+        {
+            CPacket msg = roomManager.Return_rooms_info_packet();
+            Cast_lobby_users(msg);
+        }
+        private void Cast_lobby_users(CPacket msg)
+        {
+            lock (cs_lobby_users)
+            {
+                foreach(IPeer lobby_user in lobby_users)
+                {
+                    lobby_user.Send(msg);
+                }
+            }
+            CPacket.Push_back(msg);
         }
 
 
@@ -99,15 +123,15 @@ namespace GameServer
 
             if (roomManager.Create_room(room_name))
             {
+                roomManager.Add_player_to_room(room_name, game_user);
+                Exit_lobby(game_user);
+
+
                 CPacket packet = CPacket.Pop_forCreate();
-
                 packet.Push((byte)Pr_client_action.ts);
-
                 packet.Push("Creating_Room_Succeeded");
                 ((IPeer)game_user).Send(packet);
                 CPacket.Push_back(packet);
-
-                roomManager.Add_player_to_room(room_name, game_user);
             }
             else
             {
@@ -120,6 +144,7 @@ namespace GameServer
                 CPacket.Push_back(packet);
             }
 
+            Inform_rooms_info();
         }
 
         private void Enter_room_requested(CGameUser game_user, string room_name)
@@ -140,6 +165,7 @@ namespace GameServer
                 if (!roomManager.is_room_full(room_name))
                 {
                     roomManager.Add_player_to_room(room_name, game_user);
+                    Exit_lobby(game_user);
 
                     CPacket packet = CPacket.Pop_forCreate();
                     packet.Push((byte)Pr_client_action.ts);
@@ -168,6 +194,8 @@ namespace GameServer
                 ((IPeer)game_user).Send(packet);
                 CPacket.Push_back(packet);
             }
+
+            Inform_rooms_info();
         }
     }
 }
