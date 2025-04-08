@@ -129,7 +129,12 @@ namespace FreeNet
 
             return data;
         }
-
+        public float Pop_float()
+        {
+            float data = BitConverter.ToSingle(buffer, position);
+            position += sizeof(Single);
+            return data;
+        }
 
         public void Push(byte data)
         {
@@ -161,7 +166,12 @@ namespace FreeNet
             Buffer.BlockCopy(data_buffer, 0, buffer, position, len);
             position += len;
         }
-
+        public void Push(float data)
+        {
+            byte[] push_buffer = BitConverter.GetBytes(data);
+            Buffer.BlockCopy(push_buffer, 0, buffer, position, sizeof(Single));
+            position += sizeof(Single);
+        }
 
         public void Record_size()
         {

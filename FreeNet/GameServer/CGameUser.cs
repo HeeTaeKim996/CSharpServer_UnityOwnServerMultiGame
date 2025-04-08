@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Security.Cryptography.X509Certificates;
 using CGameServer;
 using FreeNet;
 
@@ -11,6 +12,8 @@ namespace GameServer
         public CGameRoom game_room { get; private set; }
 
         public bool isMasterClient { get; private set; }
+
+        private bool isOnGame = false;
 
         public CGameUser(CUserToken token)
         {
@@ -54,47 +57,43 @@ namespace GameServer
 
         void IPeer.Process_user_operation(CPacket msg)
         {
-            Pr_target target = (Pr_target)msg.Pop_byte();
-
-            switch (target)
+            if (!isOnGame)
             {
-                case Pr_target.lobby:
-                    {
-                        Program.cGameServer.Lobby_task(msg);
-                    }
-                    break;
+                Pr_target target = (Pr_target)msg.Pop_byte();
+                switch (target)
+                {
+                    case Pr_target.lobby:
+                        {
+                            Program.cGameServer.Lobby_task(msg);
+                        }
+                        break;
 
-                case Pr_target.room:
-                    {
-                        if(game_room != null)
+                    case Pr_target.room:
                         {
-                            game_room.Room_task(msg);
+                            if (game_room != null)
+                            {
+                                game_room.Room_task(msg);
+                            }
+                            else
+                            {
+                                Console.WriteLine("CGameUser : Game Room 이 존재하지 않습니다");
+                                CPacket.Push_back(msg);
+                            }
                         }
-                        else
-                        {
-                            Console.WriteLine("CGameUser : Game Room 이 존재하지 않습니다");
-                            CPacket.Push_back(msg);
-                        }
-                    }
-                    break;
+                        break;
+                }
+            }
+            else
+            {
+                game_room.OnGame_task(msg);
+
             }
 
-
-
-
-            #region ○ For Echo_test
-            {
-                //Protocol protocol = (Protocol)msg.Pop_protocol_id();
-                //string text = msg.Pop_string();
-
-                //CPacket echo_packet = CPacket.Pop_forCreate((short)Protocol.server_to_client_string);
-                //echo_packet.Push(text);
-
-                //token.Send(echo_packet);
-                //CPacket.Push_back(msg);
-                //CPacket.Push_back(echo_packet);
-            }
-            #endregion
+            CPacket.Push_back(msg);
+        }
+        public void Set_isOnGame(bool isOnGame)
+        {
+            this.isOnGame = isOnGame;
         }
     }
 }

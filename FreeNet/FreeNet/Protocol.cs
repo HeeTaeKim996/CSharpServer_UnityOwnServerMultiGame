@@ -56,7 +56,7 @@ namespace FreeNet
 
         room_action = 2,
 
-        game_action = 3
+        game_late_start = 3
     }
     public enum Pr_ca_lobby__action
     {
@@ -66,12 +66,11 @@ namespace FreeNet
     {
         room_info = 0,
 
-        game_start = 1
-    }
-    public enum Pr_ca_game_action
-    {
+        room_start = 2,
 
+        game_start
     }
+
 
 
 }

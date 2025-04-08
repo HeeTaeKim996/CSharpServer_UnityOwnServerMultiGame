@@ -9,16 +9,16 @@ namespace CGameServer
     {
         private Dictionary<string, CGameRoom> game_rooms = new Dictionary<string, CGameRoom>();
         
-        public bool Create_room(string room_key)
+        public bool Create_room(string room_name)
         {
-            if (game_rooms.ContainsKey(room_key))
+            if (game_rooms.ContainsKey(room_name))
             {
-                Console.WriteLine($"CGameRoomManager : {room_key}의 키를 갖고 있는 룸은 이미 존재합니다");
+                Console.WriteLine($"CGameRoomManager : {room_name}의 키를 갖고 있는 룸은 이미 존재합니다");
                 return false;
             }
             else
             {
-                game_rooms[room_key] = new CGameRoom();
+                game_rooms[room_name] = new CGameRoom(room_name);
                 return true;
             }
         }

@@ -66,10 +66,12 @@ namespace GameServer
         public void Lobby_task(CPacket msg)
         {
             Pr_ta_lobby_action lobby_action = (Pr_ta_lobby_action)msg.Pop_byte();
+            Console.WriteLine($"CGameServer : {lobby_action}");
             switch (lobby_action)
             {
                 case Pr_ta_lobby_action.create_room:
                     {
+                        Console.WriteLine($"CGameServer : Check");
                         Create_room_requested((CGameUser)msg.owner, msg.Pop_string());
                     }
                     break;
@@ -79,7 +81,6 @@ namespace GameServer
                     }
                     break;
             }
-            CPacket.Push_back(msg);
         }
 
 
@@ -126,12 +127,7 @@ namespace GameServer
                 roomManager.Add_player_to_room(room_name, game_user);
                 Exit_lobby(game_user);
 
-
-                CPacket packet = CPacket.Pop_forCreate();
-                packet.Push((byte)Pr_client_action.ts);
-                packet.Push("Creating_Room_Succeeded");
-                ((IPeer)game_user).Send(packet);
-                CPacket.Push_back(packet);
+                Console.WriteLine("CGameServer : Check");
             }
             else
             {

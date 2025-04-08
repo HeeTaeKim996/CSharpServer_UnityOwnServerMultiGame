@@ -16,7 +16,7 @@ namespace FreeNetUnity
         public void Set_netEventQueuer(NetEventQueuer netEventQueuer)
         {
             weakRef_netEventQueuer = new WeakReference(netEventQueuer);
-        }
+        }   
 
         void IPeer.On_message(Const_buffer buffer)
         {
@@ -26,7 +26,6 @@ namespace FreeNetUnity
         void IPeer.Send(CPacket msg)
         {
             token.Send(msg);
-            CPacket.Push_back(msg);  // 받는 대상이 대응되는 서버 소켓 하나 뿐이니, 여기서 Push_back 처리해도 될듯
         }
         void IPeer.On_removed()
         {
