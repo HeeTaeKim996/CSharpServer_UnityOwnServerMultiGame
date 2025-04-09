@@ -577,7 +577,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa7155796051b734daa718462081dc5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_BindingMode: 1
+  m_BindingMode: 4
   m_FollowOffset: {x: 0, y: 25, z: -10}
   m_XDamping: 0.1
   m_YDamping: 0.1
@@ -931,6 +931,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isDevelopMode: 1
+  isMobiletest: 1
 --- !u!4 &1833319837
 Transform:
   m_ObjectHideFlags: 0

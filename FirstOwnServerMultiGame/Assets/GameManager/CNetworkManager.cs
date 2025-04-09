@@ -12,7 +12,10 @@ public class CNetworkManager : MonoBehaviour
     private CNetUnityService cNetUnityService;
     private bool isOnGame = false;
     private NetLobbyActionAdmin netLobbyActionAdmin;
+    public string remote_endPoint;
     public bool isDevelopMode;
+    public bool isMobiletest;
+
     
     public byte room_id { get; private set; }
 
@@ -79,7 +82,7 @@ public class CNetworkManager : MonoBehaviour
 
     private void Connect()
     {
-        cNetUnityService.Connect("127.0.0.1", 7979);
+        cNetUnityService.Connect(remote_endPoint, 7979);
     }
     public bool is_connected()
     {

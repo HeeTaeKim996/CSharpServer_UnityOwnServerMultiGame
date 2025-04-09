@@ -16,7 +16,7 @@ namespace GameServer
             CNetworkService cNetworkService = new CNetworkService();
             cNetworkService.session_created_callback += On_session_created;
             cNetworkService.Initialize();
-            cNetworkService.Listen("0.0.0.0", 7979, 100);
+            cNetworkService.Listen("192.168.163.29", 7979, 100);
 
             Console.WriteLine("Server Started");
             while (true)

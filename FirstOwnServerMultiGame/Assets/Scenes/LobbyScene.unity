@@ -537,6 +537,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 315c65ec7ae08d145b41d17c10261d57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  remote_endPoint: 192.168.163.29
+  isDevelopMode: 0
+  isMobiletest: 0
 --- !u!4 &397664384
 Transform:
   m_ObjectHideFlags: 0

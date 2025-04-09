@@ -8,21 +8,36 @@ public class PlayerMovement : MonoBehaviour
 
     private PlayerHealth playerHealth;
     private Rigidbody playerRigidbody;
-    private Animator playerAnimator;
 
     private Coroutine movingCoroutine;
 
 
     private float movementSpeed = 5f;
 
+    private Coroutine sync_clinets_coroutine;
+
     private void Awake()
     {
         playerHealth = GetComponent<PlayerHealth>();
         playerRigidbody = GetComponent<Rigidbody>();
-        playerAnimator = GetComponent<Animator>();
     }
+    private void Start()
+    {
+       //sync_clinets_coroutine = StartCoroutine(Sync_clients_coroutine());
+    }
+    private IEnumerator Sync_clients_coroutine()
+    {
+        while (true)
+        {
+            if (playerHealth.isMine)
+            {
+                Invoke_Update_position_rotation_Mine();
+            }
 
-    private void Update()
+            yield return new WaitForFixedUpdate();
+        }
+    }
+    private void FixedUpdate()
     {
         if (playerHealth.isMine)
         {
@@ -44,31 +59,34 @@ public class PlayerMovement : MonoBehaviour
         send_msg.Push((float)transform.position.y);
         send_msg.Push((float)transform.position.z);
 
-        send_msg.Push((float)transform.rotation.x);
-        send_msg.Push((float)transform.rotation.y);
-        send_msg.Push((float)transform.rotation.z);
+        Vector3 euler = transform.eulerAngles;
+        send_msg.Push((float)euler.x);
+        send_msg.Push((float)euler.y);
+        send_msg.Push((float)euler.z);
 
         CNetworkManager.instance.Send(send_msg);
     }
 
     public void Update_position_rotation_others(CPacket msg)
     {
-        transform.position = new Vector3(msg.Pop_float(), msg.Pop_float(), msg.Pop_float());
-        transform.rotation = Quaternion.Euler(new Vector3(msg.Pop_float(), msg.Pop_float(), msg.Pop_float()));
+        float pos_x = msg.Pop_float(); float pos_y = msg.Pop_float(); float pos_z = msg.Pop_float();
+        float rot_x = msg.Pop_float(); float rot_y = msg.Pop_float(); float rot_z = msg.Pop_float();
 
-        Debug.Log("Check");
+        transform.position = new Vector3(pos_x, pos_y, pos_z);
+        transform.rotation = Quaternion.Euler(new Vector3(rot_x, rot_y, rot_z));
+
+        Debug.Log($"{pos_x}, {pos_y}, {pos_z}, {rot_x}, {rot_y}, {rot_z}");
     }
 
     public void Get_Touch_Position(Vector2 touchPosition)
     {
         Ray ray = Camera.main.ScreenPointToRay(touchPosition);
         RaycastHit hit;
-        if(Physics.Raycast(ray, out hit))
+        if (Physics.Raycast(ray, out hit))
         {
             Vector3 hitPosition = hit.point;
-            Debug.Log(hitPosition);
 
-            if(movingCoroutine != null)
+            if (movingCoroutine != null)
             {
                 StopCoroutine(movingCoroutine);
             }
@@ -79,9 +97,9 @@ public class PlayerMovement : MonoBehaviour
     public IEnumerator MoveToPoint(Vector2 goalPosition)
     {
         Vector3 lookingVector = (new Vector3(goalPosition.x, 0, goalPosition.y) - transform.position).normalized;
+        transform.rotation = Quaternion.LookRotation(lookingVector);
 
         float powDistance;
-
         do
         {
             playerRigidbody.MovePosition(playerRigidbody.position + lookingVector * movementSpeed * Time.fixedDeltaTime);
@@ -92,7 +110,7 @@ public class PlayerMovement : MonoBehaviour
             float zDiff = goalPosition.y - transform.position.z;
 
             powDistance = xDiff * xDiff + zDiff * zDiff;
-        } while (powDistance > 0.05f);
+        } while (powDistance > 0.01f);
 
         movingCoroutine = null;
     }

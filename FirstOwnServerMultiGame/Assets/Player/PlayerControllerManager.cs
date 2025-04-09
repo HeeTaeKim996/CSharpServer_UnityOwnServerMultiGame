@@ -14,7 +14,7 @@ public class PlayerControllerManager : MonoBehaviour
         playerController_PC = GetComponentInChildren<PlayerController_PC>();
         playerController_mobile = GetComponentInChildren<PlayerController_Mobile>();
 
-        if(Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer)
+        if(CNetworkManager.instance.isMobiletest || Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer)
         {
             playerController_PC.gameObject.SetActive(false);
             playerController = playerController_mobile;

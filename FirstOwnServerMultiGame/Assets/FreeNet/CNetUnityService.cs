@@ -42,11 +42,11 @@ namespace FreeNetUnity
 
         private void Update()
         {
-            if (netEventQueuer.Has_network_event())
+            while(netEventQueuer.Has_network_event())
             {
                 cNetworkManager.On_status_changed(netEventQueuer.Dequeue_network_event());
             }
-            if (netEventQueuer.Has_network_message())
+            while(netEventQueuer.Has_network_message())
             {
                 CPacket msg = netEventQueuer.Dequeue_network_message();
                 cNetworkManager.On_message(msg);
