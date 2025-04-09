@@ -15,6 +15,7 @@ namespace GameServer
         private int load_completed_users;
         private string room_name;
         private NetObjectPoolManager objectPoolManager;
+        private byte room_id_index = 0;
 
         public CGameRoom(string room_name)
         {
@@ -39,8 +40,11 @@ namespace GameServer
             CPacket msg = CPacket.Pop_forCreate();
             msg.Push((byte)Pr_client_action.room_action);
             msg.Push((byte)Pr_ca_room_action.room_start);
+            room_id_index++; // roon_id_index == owner_code 의 0은 룸 오브젝트 로 처리하는 게 좋을듯
+            msg.Push((byte)room_id_index);
             ((IPeer)added_user).Send(msg);
             CPacket.Push_back(msg);
+
 
             Inform_updated_room_info();
 
@@ -147,34 +151,28 @@ namespace GameServer
             {
                 case InGameAction_server.Instantaite:
                     {
-                        NetObjectCode objectCode = (NetObjectCode)msg.Pop_byte();
+                        byte ownerCode = msg.Pop_byte();
+                        byte objectCode = msg.Pop_byte();
                         NetVector3 position = new NetVector3(msg.Pop_float(), msg.Pop_float(), msg.Pop_float());
                         NetVector3 rotation = new NetVector3(msg.Pop_float(), msg.Pop_float(), msg.Pop_float());
 
-                        short id = objectPoolManager.Add_object(objectCode);
+                        (byte pool_code, byte id) = objectPoolManager.Add_object();
 
-
-                        CPacket send_msg = CPacket.Pop_forCreate();
-                        On_object_instantiated(objectCode, id, position, rotation);
+                        On_object_instantiated(ownerCode, objectCode, pool_code, id, position, rotation);
                     }
                     break;
             }
 
         }
 
-        public void On_new_objectPool_instantaited(NetObjectCode netObjectCode)
-        {
-            CPacket msg = CPacket.Pop_forCreate();
-            msg.Push((byte)InGameAction_client.Instantiate_object_pool);
-            msg.Push((byte)netObjectCode);
-            Cast_all(msg);
-        }
-        public void On_object_instantiated(NetObjectCode objectCode, short id, NetVector3 position, NetVector3 rotation)
+        public void On_object_instantiated(byte ownerCode, byte objectCode, byte pool_code, byte id, NetVector3 position, NetVector3 rotation)
         {
             CPacket msg = CPacket.Pop_forCreate();
             msg.Push((byte)InGameAction_client.Intantaite_object);
+            msg.Push((byte)ownerCode);
             msg.Push((byte)objectCode);
-            msg.Push((short)id);
+            msg.Push((byte)pool_code);
+            msg.Push((byte)id);
             msg.Push((float)position.x);
             msg.Push((float)position.y);
             msg.Push((float)position.z);
@@ -183,12 +181,12 @@ namespace GameServer
             msg.Push((float)rotation.z);
             Cast_all(msg);
         }
-        private void Delete_object(NetObjectCode objectCode, short id)
+        private void On_delete_object(byte pool_code, byte id)
         {
             CPacket msg = CPacket.Pop_forCreate();
             msg.Push((byte)InGameAction_client.Delete_object);
-            msg.Push((byte)objectCode);
-            msg.Push((short)id);
+            msg.Push((byte)pool_code);
+            msg.Push((byte)id);
             Cast_all(msg);
         }
 

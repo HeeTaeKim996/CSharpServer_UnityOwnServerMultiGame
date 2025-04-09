@@ -10,23 +10,31 @@ namespace GameServer
 {
     public class NetObjectPool
     {
-        private static short id;
+        private byte id_index = 0;
 
-        private List<short> pool = new List<short>();
+        private List<byte> pool = new List<byte>();
 
 
-        public bool Has_id(short id)
+        public bool Has_id(byte id)
         {
             return pool.Contains(id);
         }
-
-        public short Add()
+        public bool is_addable()
         {
-            id++;
-            pool.Add(id);
-            return id;
+            return id_index < 224;
         }
-        public bool Delete(short id)
+
+        public byte Add()
+        {
+            id_index++;
+            if(id_index == 225)
+            {
+                return 0;
+            }
+            pool.Add(id_index);
+            return id_index;
+        }
+        public bool Delete(byte id)
         {
             if (!pool.Contains(id))
             {
@@ -43,28 +51,30 @@ namespace GameServer
 
     public class NetObjectPoolManager
     {
-        private Dictionary<NetObjectCode, NetObjectPool> pools_pool = new Dictionary<NetObjectCode, NetObjectPool>();
+        private Dictionary<byte, NetObjectPool> pools_pool = new Dictionary<byte, NetObjectPool>();
         private CGameRoom cGameRoom;
+        private byte pool_index = 1;
 
         public NetObjectPoolManager(CGameRoom cGameRoom)
         {
+            pools_pool[pool_index] = new NetObjectPool();
             this.cGameRoom = cGameRoom;
         }
 
-        public short Add_object(NetObjectCode netObjectCode)
+        public (byte, byte) Add_object()
         {
-            if (!pools_pool.ContainsKey(netObjectCode))
+            if (!pools_pool[pool_index].is_addable())
             {
-                pools_pool[netObjectCode] = new NetObjectPool();
-                cGameRoom.On_new_objectPool_instantaited(netObjectCode);
+                pool_index++;
+                pools_pool[pool_index] = new NetObjectPool();
             }
-            return pools_pool[netObjectCode].Add();
+            return (pool_index, pools_pool[pool_index].Add());
         }
-        public bool Remove_object(NetObjectCode netObjectCode, short id)
+        public bool Remove_object(byte pool_code, byte id)
         {
-            if (pools_pool.ContainsKey(netObjectCode))
+            if (pools_pool.ContainsKey(pool_code))
             {
-                return pools_pool[netObjectCode].Delete(id);
+                return pools_pool[pool_code].Delete(id);
             }
             else
             {

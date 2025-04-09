@@ -6,7 +6,7 @@ using UnityEngine;
 public class NetObjectManager : MonoBehaviour
 {
     public static NetObjectManager instance;
-    private Dictionary<NetObjectCode, Dictionary<short, NetObject>> pools_pool = new Dictionary<NetObjectCode, Dictionary<short, NetObject>>();
+    private Dictionary<byte, Dictionary<byte, NetObject>> pools_pool = new Dictionary<byte, Dictionary<byte, NetObject>>();
     public Player player_prefab;
 
     private void Awake()
@@ -39,20 +39,9 @@ public class NetObjectManager : MonoBehaviour
         CNetworkManager.instance.Send(msg);
     }
 
-    public void Instantiate_object_pool(NetObjectCode objectCode)
-    {
-        if (pools_pool.ContainsKey(objectCode))
-        {
-            Debug.LogError("NetObjectManager : 이미 생성된 오브젝트 코드 풀을 생성 시도");
-        }
-
-        pools_pool[objectCode] = new Dictionary<short, NetObject>();
-    }
-
-    public void Instantiate_object(NetObjectCode objectCode, short id, Vector3 position, Vector3 rotation)
+    public void Instantiate_object(byte ownerCode, NetObjectCode objectCode, byte pool_code, byte id, Vector3 position, Vector3 rotation)
     {
         NetObject netObject;
-
         switch (objectCode)
         {
             case NetObjectCode.Player:
@@ -68,7 +57,14 @@ public class NetObjectManager : MonoBehaviour
                 }
                 break;
         }
+        netObject.Set_netObject_info(ownerCode, pool_code, id);
 
-        pools_pool[objectCode][id] = netObject;
+        if (!pools_pool.ContainsKey(pool_code))
+        {
+            pools_pool[pool_code] = new Dictionary<byte, NetObject>();
+        }
+        pools_pool[pool_code][id] = netObject;
+
+        Debug.Log($"NetOBjectManager Debug__ ownerCode : {ownerCode}, objectCode : {objectCode}, pool_code : {pool_code}, id : {id}, position : {position}, rotation : {rotation}");
     }
 }

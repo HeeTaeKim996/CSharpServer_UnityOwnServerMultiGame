@@ -34,6 +34,7 @@ public class NetLobbyActionAdmin : MonoBehaviour
         {
             case Pr_ca_room_action.room_start:
                 {
+                    CNetworkManager.instance.Set_room_id(msg.Pop_byte());
                     lobbyManager.room_start();
                 }
                 break;

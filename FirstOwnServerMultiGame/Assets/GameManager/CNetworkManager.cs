@@ -11,6 +11,8 @@ public class CNetworkManager : MonoBehaviour
     private CNetUnityService cNetUnityService;
     private bool isOnGame = false;
     private NetLobbyActionAdmin netLobbyActionAdmin;
+    public byte room_id { get; private set; }
+
     private void Awake()
     {
         if(instance == null)
@@ -105,22 +107,18 @@ public class CNetworkManager : MonoBehaviour
             InGameAction_client inGameAction = (InGameAction_client)msg.Pop_byte();
             switch (inGameAction) 
             {
-                case InGameAction_client.Instantiate_object_pool:
-                    {
-                        NetObjectManager.instance.Instantiate_object_pool((NetObjectCode)msg.Pop_byte());
-                    }
-                    break;
                 case InGameAction_client.Intantaite_object:
                     {
+                        byte owner_code = msg.Pop_byte();
                         NetObjectCode objectCode = (NetObjectCode)msg.Pop_byte();
-                        short id = msg.Pop_int16();
+                        byte pool_code = msg.Pop_byte();
+                        byte id = msg.Pop_byte();
                         Vector3 position = new Vector3(msg.Pop_float(), msg.Pop_float(), msg.Pop_float());
                         Vector3 rotation = new Vector3(msg.Pop_float(), msg.Pop_float(), msg.Pop_float());
-                        NetObjectManager.instance.Instantiate_object(objectCode, id, position, rotation);
+                        NetObjectManager.instance.Instantiate_object(owner_code, objectCode, pool_code, id, position, rotation);
                     }
                     break;
             }
-
         }
     }
 
@@ -128,5 +126,8 @@ public class CNetworkManager : MonoBehaviour
     {
         cNetUnityService.Send(msg);
     }
-   
+    public void Set_room_id(byte room_id)
+    {
+        this.room_id = room_id;
+    }
 }

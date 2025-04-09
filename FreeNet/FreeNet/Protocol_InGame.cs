@@ -15,20 +15,15 @@ namespace FreeNet
 
     public enum InGameAction_client : byte
     {
-        Instantiate_object_pool = 0,
+        Intantaite_object = 0,
 
-        Intantaite_object = 1,
-
-        Delete_object = 2,
+        Delete_object = 1,
     }
 
-    public enum NetObjectCode : byte
+    public enum NetObjectCode : byte 
     {
-        Player = 0
-
-
+        Player = 0,
     }
-
 
     public struct NetVector3
     {
