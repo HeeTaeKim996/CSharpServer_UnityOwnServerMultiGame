@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using FreeNet;
+using JetBrains.Annotations;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -8,33 +10,35 @@ public class PlayerMovement : MonoBehaviour
 
     private PlayerHealth playerHealth;
     private Rigidbody playerRigidbody;
-
+    private Animator playerAnimator;
     private Coroutine movingCoroutine;
 
 
     private float movementSpeed = 5f;
+    private bool isMoving = false;
 
-    private Coroutine sync_clinets_coroutine;
+    private string currentAnimation;
+    public enum AnimationEnum : byte
+    {
+        Idle,
+        Walk
+    }
 
     private void Awake()
     {
         playerHealth = GetComponent<PlayerHealth>();
         playerRigidbody = GetComponent<Rigidbody>();
+        playerAnimator = GetComponent<Animator>();
     }
     private void Start()
     {
-       //sync_clinets_coroutine = StartCoroutine(Sync_clients_coroutine());
-    }
-    private IEnumerator Sync_clients_coroutine()
-    {
-        while (true)
-        {
-            if (playerHealth.isMine)
-            {
-                Invoke_Update_position_rotation_Mine();
-            }
 
-            yield return new WaitForFixedUpdate();
+    }
+    private void Update()
+    {
+        if (playerHealth.isMine && !isMoving)
+        {
+            BaseAnimationCrossFade_Mine(AnimationEnum.Idle, 0.05f);
         }
     }
     private void FixedUpdate()
@@ -51,7 +55,7 @@ public class PlayerMovement : MonoBehaviour
         send_msg.Push((byte)InGameAction_server.Object_transfer_copy);
         send_msg.Push((byte)playerHealth.pool_code);
         send_msg.Push((byte)playerHealth.id);
-        send_msg.Push((byte)PlayerHealth.NetEnum.Update_position_rotation);
+        send_msg.Push((byte)PlayerHealth.NetEnum.Update_fixed_sync);
         send_msg.Push((byte)RoomMember.Others);
         send_msg.Push((short)(6 * sizeof(float)));
 
@@ -67,15 +71,13 @@ public class PlayerMovement : MonoBehaviour
         CNetworkManager.instance.Send(send_msg);
     }
 
-    public void Update_position_rotation_others(CPacket msg)
+    public void Update_fixed_sync(CPacket msg)
     {
         float pos_x = msg.Pop_float(); float pos_y = msg.Pop_float(); float pos_z = msg.Pop_float();
         float rot_x = msg.Pop_float(); float rot_y = msg.Pop_float(); float rot_z = msg.Pop_float();
 
         transform.position = new Vector3(pos_x, pos_y, pos_z);
         transform.rotation = Quaternion.Euler(new Vector3(rot_x, rot_y, rot_z));
-
-        Debug.Log($"{pos_x}, {pos_y}, {pos_z}, {rot_x}, {rot_y}, {rot_z}");
     }
 
     public void Get_Touch_Position(Vector2 touchPosition)
@@ -100,6 +102,10 @@ public class PlayerMovement : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(lookingVector);
 
         float powDistance;
+
+        isMoving = true;
+        BaseAnimationCrossFade_Mine(AnimationEnum.Walk, 0.05f);
+
         do
         {
             playerRigidbody.MovePosition(playerRigidbody.position + lookingVector * movementSpeed * Time.fixedDeltaTime);
@@ -112,6 +118,60 @@ public class PlayerMovement : MonoBehaviour
             powDistance = xDiff * xDiff + zDiff * zDiff;
         } while (powDistance > 0.01f);
 
+        isMoving = false;
         movingCoroutine = null;
     }
+
+
+    public void BaseAnimationCrossFade_Mine(AnimationEnum animationEnum, float blendTime)
+    {
+        string animationName = animationEnum.ToString();
+
+        if (currentAnimation == animationName) return;
+
+        playerAnimator.CrossFade(animationName, blendTime, 0, 0);
+        currentAnimation = animationName;
+
+        CPacket send_msg = CPacket.Pop_forCreate();
+        send_msg.Push((byte)InGameAction_server.Object_transfer_copy);
+        send_msg.Push((byte)playerHealth.pool_code);
+        send_msg.Push((byte)playerHealth.id);
+        send_msg.Push((byte)PlayerHealth.NetEnum.Animation_Sync);
+        send_msg.Push((byte)RoomMember.Others);
+
+        send_msg.Push((short)9);
+        send_msg.Push((byte)animationEnum);
+        send_msg.Push((float)blendTime);
+        send_msg.Push((float)0);
+        CNetworkManager.instance.Send(send_msg);
+    }
+    public void BaseAnimationCoroutine_Mine(AnimationEnum animationEnum, float blendTime)
+    {
+        string animationName = animationEnum.ToString();
+        playerAnimator.CrossFade(animationName, blendTime, 0, 0);
+        currentAnimation = animationName;
+
+
+        CPacket send_msg = CPacket.Pop_forCreate();
+        send_msg.Push((byte)InGameAction_server.Object_transfer_copy);
+        send_msg.Push((byte)playerHealth.pool_code);
+        send_msg.Push((byte)playerHealth.id);
+        send_msg.Push((byte)PlayerHealth.NetEnum.Animation_Sync);
+        send_msg.Push((byte)RoomMember.Others);
+
+        send_msg.Push((short)9);
+        send_msg.Push((byte)animationEnum);
+        send_msg.Push((float)blendTime);
+        send_msg.Push((float)0);
+        CNetworkManager.instance.Send(send_msg);
+    }
+    public void Sync_Animation_Others(CPacket msg)
+    {
+        AnimationEnum animationEnum = (AnimationEnum)msg.Pop_byte();
+        string animationName = animationEnum.ToString();
+        Debug.Log(animationName);
+        playerAnimator.CrossFade(animationName, msg.Pop_float(), 0, msg.Pop_float());
+    }
+
+    
 }

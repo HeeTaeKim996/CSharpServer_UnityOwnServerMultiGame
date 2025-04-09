@@ -8,7 +8,9 @@ public class PlayerHealth : LivingEntity
 {
     public enum NetEnum : byte 
     {
-        Update_position_rotation
+        Update_fixed_sync,
+
+        Animation_Sync
     }
     
     public override void NetMethod(CPacket msg)
@@ -16,9 +18,14 @@ public class PlayerHealth : LivingEntity
         NetEnum netEnum = (NetEnum)msg.Pop_byte();
         switch (netEnum)
         {
-            case NetEnum.Update_position_rotation:
+            case NetEnum.Update_fixed_sync:
                 {
-                    playerMovement.Update_position_rotation_others(msg);
+                    playerMovement.Update_fixed_sync(msg);
+                }
+                break;
+            case NetEnum.Animation_Sync:
+                {
+                    playerMovement.Sync_Animation_Others(msg);
                 }
                 break;
         }
