@@ -4,6 +4,7 @@ using UnityEngine;
 using FreeNet;
 using FreeNetUnity;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class CNetworkManager : MonoBehaviour
 {
@@ -11,6 +12,8 @@ public class CNetworkManager : MonoBehaviour
     private CNetUnityService cNetUnityService;
     private bool isOnGame = false;
     private NetLobbyActionAdmin netLobbyActionAdmin;
+    public bool isDevelopMode;
+    
     public byte room_id { get; private set; }
 
     private void Awake()
@@ -29,7 +32,32 @@ public class CNetworkManager : MonoBehaviour
         cNetUnityService = GetComponent<CNetUnityService>();
         On_lobby_scene_start();
         Connect();
+
+        if (SceneManager.GetActiveScene().name == "MainGame") // 테스트 용도
+        {
+            StartCoroutine(ForDevelop_ownStart_coroutine());
+        }
     }
+    private IEnumerator ForDevelop_ownStart_coroutine()
+    {
+        yield return new WaitForSeconds(0.1f);
+
+        CPacket msg = CPacket.Pop_forCreate();
+        msg.Push((byte)Pr_target.lobby);
+        msg.Push((byte)Pr_ta_lobby_action.create_room);
+        msg.Push("For Develop Room132465");
+        CNetworkManager.instance.Send(msg);
+
+        yield return new WaitForSeconds(0.1f);
+
+        Debug.Log("LobbyManager : Invoke_start_game Check");
+        CPacket packet = CPacket.Pop_forCreate();
+        packet.Push((byte)Pr_target.room);
+        packet.Push((byte)Pr_ta_room_target.all);
+        packet.Push((byte)Pr_ta_room_action.game_start_masterClient);
+        CNetworkManager.instance.Send(packet);
+    }
+
     private void On_scene_changed(UnityEngine.SceneManagement.Scene oldScene, UnityEngine.SceneManagement.Scene newScene)
     {
         if(newScene.name == "MainGame")
@@ -66,7 +94,10 @@ public class CNetworkManager : MonoBehaviour
             case NetworkEvent.connected:
                 {
                     Debug.Log("CNetworkManager : 서버와 연결됨");
+                    if (isDevelopMode) return;  // 개발 용도. 개발 때 MainGame에서 바로 시작할 때에, LobbyManager가 없으므로, LobbyScene에서만 활성화되도록 처리
+                    
                     LobbyManager.instance.lobby_start();
+                    
                 }
                 break;
             case NetworkEvent.disconnected:
@@ -85,11 +116,13 @@ public class CNetworkManager : MonoBehaviour
             {
                 case Pr_client_action.lobby_actin:
                     {
+                        if (isDevelopMode) return;  // 개발 용도. 개발 때 MainGame에서 바로 시작할 때에, LobbyManager가 없으므로, LobbyScene에서만 활성화되도록 처리
                         netLobbyActionAdmin.Net_lobbyAction_task(msg);
                     }
                     break;
                 case Pr_client_action.room_action:
                     {
+                        if (CNetworkManager.instance.isDevelopMode) return;  // 개발 용도. 개발 때 MainGame에서 바로 시작할 때에, LobbyManager가 없으므로, LobbyScene에서만 활성화되도록 처리
                         netLobbyActionAdmin.Net_room_action_task(msg);   
                     }
                     break;
@@ -116,6 +149,12 @@ public class CNetworkManager : MonoBehaviour
                         Vector3 position = new Vector3(msg.Pop_float(), msg.Pop_float(), msg.Pop_float());
                         Vector3 rotation = new Vector3(msg.Pop_float(), msg.Pop_float(), msg.Pop_float());
                         NetObjectManager.instance.Instantiate_object(owner_code, objectCode, pool_code, id, position, rotation);
+                    }
+                    break;
+                case InGameAction_client.Object_transfer:
+                    {
+                        NetObject netObject = NetObjectManager.instance.Get_netObject(msg.Pop_byte(), msg.Pop_byte());
+                        netObject.NetMethod(msg);
                     }
                     break;
             }

@@ -12,8 +12,7 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private Transform spawnPivot;
-    [SerializeField]
-    private Player player;
+
 
     private void Awake()
     {

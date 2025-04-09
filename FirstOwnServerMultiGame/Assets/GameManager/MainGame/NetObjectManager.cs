@@ -7,7 +7,7 @@ public class NetObjectManager : MonoBehaviour
 {
     public static NetObjectManager instance;
     private Dictionary<byte, Dictionary<byte, NetObject>> pools_pool = new Dictionary<byte, Dictionary<byte, NetObject>>();
-    public Player player_prefab;
+    public PlayerHealth player_prefab;
 
     private void Awake()
     {
@@ -24,9 +24,19 @@ public class NetObjectManager : MonoBehaviour
 
     void Start()
     {
-
-        Inform_client_is_ready(); // 넷 옵젝 매니저가 처리하는 게 좋을듯 해서 여기서, 서버로 보내는 코드 작성
-
+        if (CNetworkManager.instance.isDevelopMode)
+        {
+            StartCoroutine(ForDevelop_lateReady());
+        }
+        else
+        {
+            Inform_client_is_ready(); // 넷 옵젝 매니저가 처리하는 게 좋을듯 해서 여기서, 서버로 보내는 코드 작성
+        }
+    }
+    private IEnumerator ForDevelop_lateReady()
+    {
+        yield return new WaitForSeconds(0.5f);
+        Inform_client_is_ready();
     }
 
     private void Inform_client_is_ready()
@@ -58,6 +68,7 @@ public class NetObjectManager : MonoBehaviour
                 break;
         }
         netObject.Set_netObject_info(ownerCode, pool_code, id);
+        netObject.After_Set_start();
 
         if (!pools_pool.ContainsKey(pool_code))
         {
@@ -66,5 +77,10 @@ public class NetObjectManager : MonoBehaviour
         pools_pool[pool_code][id] = netObject;
 
         Debug.Log($"NetOBjectManager Debug__ ownerCode : {ownerCode}, objectCode : {objectCode}, pool_code : {pool_code}, id : {id}, position : {position}, rotation : {rotation}");
+    }
+
+    public NetObject Get_netObject(byte pool_code, byte id)
+    {
+        return pools_pool[pool_code][id];
     }
 }

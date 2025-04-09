@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -161,6 +162,36 @@ namespace GameServer
                         On_object_instantiated(ownerCode, objectCode, pool_code, id, position, rotation);
                     }
                     break;
+                case InGameAction_server.Object_transfer_copy:
+                    {
+                        byte pool_code = msg.Pop_byte();
+                        byte id = msg.Pop_byte();
+                        byte netEnum = msg.Pop_byte();
+                        RoomMember roomMember = (RoomMember)msg.Pop_byte();
+                        short coppyLength = msg.Pop_int16();
+
+                        CPacket send_msg = CPacket.Pop_forCreate();
+                        send_msg.Push((byte)InGameAction_client.Object_transfer);
+                        send_msg.Push((byte)pool_code);
+                        send_msg.Push((byte)id);
+                        send_msg.Push((byte)netEnum);
+                        send_msg.Copy_buffer_with_startPoint(msg.buffer, msg.position, coppyLength);
+
+                        switch (roomMember) 
+                        {
+                            case RoomMember.All:
+                                {
+                                    Cast_all(send_msg);
+                                }
+                                break;
+                            case RoomMember.Others:
+                                {
+                                    Cast_others(send_msg, msg.owner);
+                                }
+                                break;
+                        }
+                    }
+                    break;
             }
 
         }
@@ -192,10 +223,20 @@ namespace GameServer
 
         private void Cast_all(CPacket send_msg)
         {
-            foreach(CGameUser game_user in game_users)
+            foreach(IPeer game_user in game_users)
             {
+                game_user.Send(send_msg);
+            }
+            CPacket.Push_back(send_msg);
+        }
 
-                ((IPeer)game_user).Send(send_msg);
+        private void Cast_others(CPacket send_msg, IPeer owner)
+        {
+            foreach(IPeer game_user in game_users)
+            {
+                if (owner == game_user) continue;
+
+                game_user.Send(send_msg);
             }
             CPacket.Push_back(send_msg);
         }

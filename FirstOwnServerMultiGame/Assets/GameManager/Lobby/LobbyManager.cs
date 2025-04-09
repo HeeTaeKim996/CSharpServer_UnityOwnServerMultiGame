@@ -122,7 +122,7 @@ public class LobbyManager : MonoBehaviour
         }
     }
     
-    private void Invoke_start_game()
+    public void Invoke_start_game()
     {
         Debug.Log("LobbyManager : Invoke_start_game Check");
         CPacket packet = CPacket.Pop_forCreate();

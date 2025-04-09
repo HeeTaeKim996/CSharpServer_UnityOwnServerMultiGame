@@ -10,7 +10,9 @@ namespace FreeNet
 
         Instantaite = 1,
 
-        Destroy = 2
+        Destroy = 2,
+
+        Object_transfer_copy = 3
     }
 
     public enum InGameAction_client : byte
@@ -18,6 +20,8 @@ namespace FreeNet
         Intantaite_object = 0,
 
         Delete_object = 1,
+
+        Object_transfer = 2
     }
 
     public enum NetObjectCode : byte 
@@ -37,6 +41,13 @@ namespace FreeNet
             this.y = y;
             this.z = z;
         }
+    }
+
+    public enum RoomMember : byte
+    {
+        All,
+        Others,
+        MasterClient
     }
 
 }

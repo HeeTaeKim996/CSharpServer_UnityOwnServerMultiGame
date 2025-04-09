@@ -91,6 +91,13 @@ namespace FreeNet
 
             //Console.WriteLine($"CPacket 테스트 {position}");
         }
+
+        public void Copy_buffer_with_startPoint(byte[] copied_buffer, int startPoint, int length)
+        {
+            Buffer.BlockCopy(copied_buffer, startPoint, buffer, position, length);
+            position += length;
+        }
+
         public void Set_owner(IPeer owner)
         {
             this.owner = owner;

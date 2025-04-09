@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 
 public class NetLobbyActionAdmin : MonoBehaviour
 {
-    private LobbyManager lobbyManager;
+    public LobbyManager lobbyManager { get; private set; }
 
     private void Awake()
     {

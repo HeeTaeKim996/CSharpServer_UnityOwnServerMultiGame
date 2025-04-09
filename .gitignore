@@ -1,3 +1,7 @@
+
+# 추가로 Asset/Packages 무시 처리함
+FirstOwnServerMultiGame/[Aa]ssets/[Pp]ackages
+
 # This .gitignore file should be placed at the root of your Unity project directory
 #
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
