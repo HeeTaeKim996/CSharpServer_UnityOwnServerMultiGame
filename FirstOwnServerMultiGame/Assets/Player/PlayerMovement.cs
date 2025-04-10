@@ -21,6 +21,9 @@ public class PlayerMovement : MonoBehaviour
     private LayerMask enemyLayer;
     private float damage = 20f;
 
+    public GameObject tempObject;
+    private GameObject tempInstan;
+
     public enum AnimationEnum : byte
     {
         Idle,
@@ -38,6 +41,10 @@ public class PlayerMovement : MonoBehaviour
     private void Start()
     {
         enemyLayer = LayerMask.GetMask("Enemy");
+
+        Debug.Log(tempObject);
+        tempInstan = Instantiate(tempObject);
+        tempInstan.gameObject.SetActive(false);
     }
     private void Update()
     {
@@ -141,10 +148,15 @@ public class PlayerMovement : MonoBehaviour
     {
         float distanceToEnemy;
 
+        tempInstan.gameObject.SetActive(true);
+        tempInstan.transform.SetParent(enemy.transform, false);
+        tempInstan.transform.position = enemy.transform.position;
+
     Back:
         BaseAnimationCrossFade_Mine(AnimationEnum.Walk, 0.05f);
         do
         {
+
 
             Vector3 enemyPosition = enemy.transform.position;
 
@@ -185,7 +197,6 @@ public class PlayerMovement : MonoBehaviour
                 {
                     if (!enemy.dead)
                     {
-                        Debug.Log(enemy.dead);
                         if (CNetworkManager.instance.isMasterClient)
                         {
                             Debug.Log("PlyaerMovement : InvokeDamage_Master Check");

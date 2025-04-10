@@ -115,7 +115,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23b11c4ca715bff419c620c5b3b14a85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isScenePlaced: 0
+  instanType: 0
+  netObjectCode_forScenePlaced_Sync: 0
 --- !u!114 &7583694795239748570
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -128,6 +129,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a731bde52aeb4d64283f31633f400416, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tempObject: {fileID: 3042883827929386, guid: 12f3606c1a8138e4089a193dcac98101, type: 3}
 --- !u!54 &8703114988876504486
 Rigidbody:
   m_ObjectHideFlags: 0

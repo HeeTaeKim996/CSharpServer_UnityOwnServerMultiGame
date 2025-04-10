@@ -36,7 +36,6 @@ public class PlayerHealth : LivingEntity
 
     private PlayerMovement playerMovement;
     private PlayerController playerController;
-    public event Action onDead;
 
     protected override void Awake()
     {
@@ -65,8 +64,8 @@ public class PlayerHealth : LivingEntity
     protected override void Die()
     {
         base.Die();
+
         playerMovement.Invoke_DieAction();
-        onDead?.Invoke();
     }
     public void On_die_action_finished()
     {

@@ -71,8 +71,6 @@ public class LobbyManager : MonoBehaviour
         int room_count = msg.Pop_byte();
         for(int i = 0; i < room_count; i++)
         {
-            Debug.Log("Check");
-
             string room_name = msg.Pop_string();
             int rooms_user_count = msg.Pop_byte();
             Room room = Instantiate(room_prefab);
@@ -83,8 +81,6 @@ public class LobbyManager : MonoBehaviour
             roomRect.anchoredPosition = Vector2.zero;
 
             active_rooms.Add(room);
-
-            Debug.Log("LobbyManager : Lobby room updated ");
         }
     }
     public void Create_room()
@@ -124,7 +120,6 @@ public class LobbyManager : MonoBehaviour
     
     public void Invoke_start_game()
     {
-        Debug.Log("LobbyManager : Invoke_start_game Check");
         CPacket packet = CPacket.Pop_forCreate();
         packet.Push((byte)Pr_target.room);
         packet.Push((byte)Pr_ta_room_target.all);

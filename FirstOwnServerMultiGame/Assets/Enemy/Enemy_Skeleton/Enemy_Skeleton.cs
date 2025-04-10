@@ -9,18 +9,24 @@ public class Enemy_Skeleton : FieldEnemy
     public enum NetEnum__121_150 : byte
     {
         UpdateFixedSync_Others = 121,
-
-
+        Sync_Animation_Others = 122,
     }
     public override void NetMethod(CPacket msg)
     {
         base.NetMethod(msg);
         NetEnum__121_150 netEnum = (NetEnum__121_150)byteNetEnum;
+        Debug.Log(netEnum.ToString());
         switch (netEnum)
         {
             case NetEnum__121_150.UpdateFixedSync_Others:
                 {
                     UpdateFixedSync_Others(msg);
+                }
+                break;
+            case NetEnum__121_150.Sync_Animation_Others:
+                {
+                    Debug.Log("Check");
+                    Sync_Animation_Others(msg);
                 }
                 break;
         }
@@ -34,7 +40,7 @@ public class Enemy_Skeleton : FieldEnemy
     private IEnumerator nextAction;
     private float movementSpeed = 4f;
 
-    private float damage = 50f;
+    private float damage = 1f;
 
     public enum AnimationEnum : byte
     {
@@ -108,19 +114,19 @@ public class Enemy_Skeleton : FieldEnemy
         CommonMethods.Destroy_netObject_MasterClient(pool_code, id);
     }
 
-    protected override void On_discernPlayer()
-    {
-        base.On_discernPlayer();
-    }
     protected override void On_PlayerDead()
     {
         base.On_PlayerDead();
-        if(currentAction != null)
+        nextAction = DecideAction();
+        if (currentAction != null)
         {
             StopCoroutine(currentAction);
         }
-        nextAction = DecideAction();
-        currentAction = StartCoroutine(nextAction);
+        Debug.Log($"Enemy_Skeleton : {attackTarget} // {nextAction}");
+        if(currentAction != null)
+        {
+            currentAction = StartCoroutine(nextAction);
+        }
     }
 
     private IEnumerator On_idle_layder()
@@ -138,7 +144,10 @@ public class Enemy_Skeleton : FieldEnemy
                     if (playerHealth.dead) continue;
 
                     attackTarget = playerHealth;
-                    break;
+                    UpdateCalcutations();
+                    nextAction = DecideAction();
+                    currentAction = StartCoroutine(nextAction);
+                    yield break;
                 }
 
                 break;
@@ -146,11 +155,6 @@ public class Enemy_Skeleton : FieldEnemy
 
             yield return new WaitForSeconds(0.5f);
         }
-
-        UpdateCalcutations();
-        nextAction = DecideAction();
-        currentAction = StartCoroutine(nextAction);
-        On_discernPlayer();
     }
 
 
@@ -251,7 +255,7 @@ public class Enemy_Skeleton : FieldEnemy
         enemyAnimator.CrossFade(animationName, blendTime, 0, 0);
         currentAnimation = animationName;
 
-        CommonMethods.Sync_animation_Mine(pool_code, id, (byte)PlayerHealth.NetEnum__61_90.Animation_Sync, (byte)RoomMember.Others, (byte)animationEnum, blendTime, 0f);
+        CommonMethods.Sync_animation_Mine(pool_code, id, (byte)NetEnum__121_150.Sync_Animation_Others, (byte)RoomMember.Others, (byte)animationEnum, blendTime, 0f);
     }
     public void BaseAnimationCoroutine_Mine(AnimationEnum animationEnum, float blendTime)
     {
@@ -259,7 +263,7 @@ public class Enemy_Skeleton : FieldEnemy
         enemyAnimator.CrossFade(animationName, blendTime, 0, 0);
         currentAnimation = animationName;
 
-        CommonMethods.Sync_animation_Mine(pool_code, id, (byte)PlayerHealth.NetEnum__61_90.Animation_Sync, (byte)RoomMember.Others, (byte)animationEnum, blendTime, 0f);
+        CommonMethods.Sync_animation_Mine(pool_code, id, (byte)NetEnum__121_150.Sync_Animation_Others, (byte)RoomMember.Others, (byte)animationEnum, blendTime, 0f);
     }
     public void Sync_Animation_Others(CPacket msg)
     {

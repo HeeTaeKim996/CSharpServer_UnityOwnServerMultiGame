@@ -35,9 +35,16 @@ public abstract class Enemy : LivingEntity
     {
         // Calculate Calculations
         {
-            if (attackTarget != null && !attackTarget.dead)
+            if (attackTarget != null)
             {
-                UpdateCalcutations();
+                if(!attackTarget.dead)
+                {
+                    UpdateCalcutations();
+                }
+                else
+                {
+                    On_PlayerDead();
+                }
             }
         }
     }
@@ -45,22 +52,20 @@ public abstract class Enemy : LivingEntity
     protected override void Die()
     {
         base.Die();
-        attackTarget.onDead -= On_PlayerDead;
     }
 
     protected virtual void UpdateCalcutations()
     {
+
         distanceToTarget = Vector3.Distance(transform.position, attackTarget.transform.position);
+        
     }
 
-    protected virtual void On_discernPlayer()
-    {
-        attackTarget.onDead += On_PlayerDead;
-    }
+
 
     protected virtual void On_PlayerDead()
     {
-
+        attackTarget = null;
     }
 
     

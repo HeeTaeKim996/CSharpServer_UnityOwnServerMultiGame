@@ -24,12 +24,11 @@ public class EnemySpawner : NetObject
     protected override void Start()
     {
         base.Start();
-
-        GameManager.instance.event_lateStart += Late_start;
     }
 
-    private void Late_start()
+    protected override void Late_start()
     {
+        base.Late_start();
         if (CNetworkManager.instance.isMasterClient)
         {
             CommonMethods.Instantiate_netObject(CNetworkManager.instance.room_id, NetObjectCode.Enemy_skeleton, new Vector3(0, 0, 4f), Vector3.zero);

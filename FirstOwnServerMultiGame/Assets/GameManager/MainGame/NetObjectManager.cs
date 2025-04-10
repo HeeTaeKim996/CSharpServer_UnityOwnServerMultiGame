@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using FreeNet;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class NetObjectManager : MonoBehaviour
@@ -8,6 +9,7 @@ public class NetObjectManager : MonoBehaviour
     public static NetObjectManager instance;
     private Dictionary<byte, Dictionary<byte, NetObject>> pools_pool = new Dictionary<byte, Dictionary<byte, NetObject>>();
     public PlayerHealth player_prefab;
+    public Enemy_Skeleton enemy_skeleton_prefab;
 
     private byte scene_object_index = 0;
     
@@ -63,8 +65,11 @@ public class NetObjectManager : MonoBehaviour
                     netObject = Instantiate(player_prefab, position, Quaternion.Euler(rotation));
                 }
                 break;
-
-
+            case NetObjectCode.Enemy_skeleton:
+                {
+                    netObject = Instantiate(enemy_skeleton_prefab, position, Quaternion.Euler(rotation));
+                }
+                break;
             default:
                 {
                     netObject = null;
@@ -86,7 +91,7 @@ public class NetObjectManager : MonoBehaviour
     {
         if (pools_pool.ContainsKey(pool_code) && pools_pool[pool_code].ContainsKey(id))
         {
-            Destroy(pools_pool[pool_code][id]);
+            Destroy(pools_pool[pool_code][id].gameObject);
 
             pools_pool[pool_code].Remove(id);
             if (pools_pool[pool_code].Count <= 0 && pools_pool.Count - pool_code > 0) // 갓 생성된 풀에 오브젝트가 하나밖에 없는 상황에서, 그 오브젝트가 Destroy됐을 때 풀이 삭제 되는 것을 방지

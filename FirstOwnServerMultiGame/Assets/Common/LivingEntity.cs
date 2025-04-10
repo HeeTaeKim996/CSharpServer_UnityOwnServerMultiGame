@@ -89,7 +89,7 @@ public abstract class LivingEntity : NetObject
     public void Sync_health_others(CPacket msg)
     {
         this.health = msg.Pop_float();
-        Debug.Log($"LivingEntity : Sync_health_others : {health}");
+        //Debug.Log($"LivingEntity : Sync_health_others : {health}");
     }
     public virtual void OnDamage_Others(CPacket msg)
     {
@@ -98,7 +98,7 @@ public abstract class LivingEntity : NetObject
 
     protected virtual void OnDamage(LivingEntity fromEntity)
     {
-        Debug.Log($"LivingEntity OnDamage Check: {health} // {fromEntity}");
+        //Debug.Log($"LivingEntity OnDamage Check: {health} // {fromEntity}");
         if (health <= 0)
         {
             Die();

@@ -41,7 +41,7 @@ public class GameManager : MonoBehaviour
 
         CommonMethods.Instantiate_netObject(CNetworkManager.instance.room_id, NetObjectCode.Player, spawnPosition, Vector3.zero);
 
-        Debug.Log($"GameMAnaer DebugCHeck __ room_id : {CNetworkManager.instance.room_id}, NetObjectCode : {NetObjectCode.Player}, spawnPosition : {spawnPosition}, rotation : {Vector3.zero}");
+        //Debug.Log($"GameMAnaer DebugCHeck __ room_id : {CNetworkManager.instance.room_id}, NetObjectCode : {NetObjectCode.Player}, spawnPosition : {spawnPosition}, rotation : {Vector3.zero}");
     }
 
 

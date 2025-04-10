@@ -6,13 +6,13 @@ namespace FreeNet
 {
     public enum InGameAction_server : byte
     {
-        game_start = 0,
+        game_start,
 
-        Instantaite = 1,
+        Instantaite,
 
-        Destroy = 2,
+        Destroy,
 
-        Object_transfer_copy = 3
+        Object_transfer_copy,
     }
 
     public enum InGameAction_client : byte
@@ -26,8 +26,9 @@ namespace FreeNet
 
     public enum NetObjectCode : byte 
     {
-        Player = 0,
-        Enemy_skeleton = 1,
+        None,
+        Player,
+        Enemy_skeleton,
     }
 
     public struct NetVector3

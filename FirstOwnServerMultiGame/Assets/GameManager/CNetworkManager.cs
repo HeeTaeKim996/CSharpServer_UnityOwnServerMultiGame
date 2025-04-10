@@ -28,8 +28,11 @@ public class CNetworkManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("두개의 CNetworkManager가 있습니다. 새로 추가된 것을 삭제합니다");
             Destroy(gameObject);
+        }
+        if (isDevelopMode)
+        {
+            Set_room_id(1);
         }
         SceneManager.activeSceneChanged += On_scene_changed;
         cNetUnityService = GetComponent<CNetUnityService>();
@@ -41,13 +44,7 @@ public class CNetworkManager : MonoBehaviour
             StartCoroutine(ForDevelop_ownStart_coroutine());
         }
     }
-    private void Start()
-    {
-        if (isDevelopMode)
-        {
-            Set_room_id(1);
-        }
-    }
+
     private IEnumerator ForDevelop_ownStart_coroutine()
     {
         yield return new WaitForSeconds(0.1f);

@@ -10,7 +10,16 @@ public abstract class NetObject : MonoBehaviour
     public byte id { get; protected set; }
     public bool isMine { get; protected set; }
 
-    public bool isScenePlaced;
+    private enum InstanType
+    {
+        Instantiated,
+        ScenePlaced_each,
+        ScenePlaced_Sync
+    }
+    [SerializeField]
+    private InstanType instanType;
+    [SerializeField]
+    private NetObjectCode netObjectCode_forScenePlaced_Sync;
 
     protected byte byteNetEnum;
 
@@ -20,13 +29,28 @@ public abstract class NetObject : MonoBehaviour
     }
     protected virtual void Start()
     {
-        if (isScenePlaced)
+
+
+        if (instanType == InstanType.ScenePlaced_each)
         {
             owner = CNetworkManager.instance.room_id;
             pool_code = 0;
             id = NetObjectManager.instance.Register_scene_object(this);
 
             isMine = true;
+        }
+
+        GameManager.instance.event_lateStart += Late_start;
+    }
+    protected virtual void Late_start()
+    {
+        if (instanType == InstanType.ScenePlaced_Sync)
+        {
+            if (CNetworkManager.instance.isMasterClient)
+            {
+                CommonMethods.Instantiate_netObject(CNetworkManager.instance.room_id, netObjectCode_forScenePlaced_Sync, transform.position, transform.eulerAngles);
+            }
+            Destroy(gameObject);
         }
     }
 
@@ -55,7 +79,8 @@ public abstract class NetObject : MonoBehaviour
 
     public void OnDestroy()
     {
-        if (isScenePlaced)
+        GameManager.instance.event_lateStart -= Late_start;
+        if (instanType == InstanType.ScenePlaced_each)
         {
             NetObjectManager.instance.UnRegister_scene_object(id);
         }
