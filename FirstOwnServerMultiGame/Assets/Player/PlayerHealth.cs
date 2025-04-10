@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
@@ -6,24 +7,25 @@ using UnityEngine;
 
 public class PlayerHealth : LivingEntity
 {
-    public enum NetEnum : byte 
+    public enum NetEnum__61_90 : byte 
     {
-        Update_fixed_sync,
+        Update_fixed_sync = 61,
 
-        Animation_Sync
+        Animation_Sync = 62,
     }
     
     public override void NetMethod(CPacket msg)
     {
-        NetEnum netEnum = (NetEnum)msg.Pop_byte();
+        base.NetMethod(msg);
+        NetEnum__61_90 netEnum = (NetEnum__61_90)byteNetEnum;
         switch (netEnum)
         {
-            case NetEnum.Update_fixed_sync:
+            case NetEnum__61_90.Update_fixed_sync:
                 {
                     playerMovement.Update_fixed_sync(msg);
                 }
                 break;
-            case NetEnum.Animation_Sync:
+            case NetEnum__61_90.Animation_Sync:
                 {
                     playerMovement.Sync_Animation_Others(msg);
                 }
@@ -33,11 +35,19 @@ public class PlayerHealth : LivingEntity
 
 
     private PlayerMovement playerMovement;
+    private PlayerController playerController;
+    public event Action onDead;
 
-
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         playerMovement = GetComponent<PlayerMovement>();
+        maxHealth = 100f;
+        health = maxHealth;
+    }
+    protected override void Start()
+    {
+        base.Start();
     }
 
     public override void After_Set_start()
@@ -48,7 +58,19 @@ public class PlayerHealth : LivingEntity
             virtualCamera.LookAt = transform;
             virtualCamera.Follow = transform;
 
-            FindObjectOfType<PlayerControllerManager>().Set_PlayerMovement(playerMovement);
+            playerController = FindObjectOfType<PlayerControllerManager>().Set_PlayerMovement(playerMovement);
         }
+    }
+
+    protected override void Die()
+    {
+        base.Die();
+        playerMovement.Invoke_DieAction();
+        onDead?.Invoke();
+    }
+    public void On_die_action_finished()
+    {
+        playerController.gameObject.SetActive(false);
+        CommonMethods.Destroy_netObject_MasterClient(pool_code, id);
     }
 }

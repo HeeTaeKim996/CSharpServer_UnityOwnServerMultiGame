@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -162,6 +163,26 @@ namespace GameServer
                         On_object_instantiated(ownerCode, objectCode, pool_code, id, position, rotation);
                     }
                     break;
+
+                case InGameAction_server.Destroy:
+                    {
+                        byte pool_code = msg.Pop_byte();
+                        byte id = msg.Pop_byte();
+
+                        if(objectPoolManager.Remove_object(pool_code, id))
+                        {
+                            CPacket send_msg = CPacket.Pop_forCreate();
+                            send_msg.Push((byte)InGameAction_client.Delete_object);
+                            send_msg.Push((byte)pool_code);
+                            send_msg.Push((byte)id);
+                            Cast_all(send_msg);
+                        }
+                        else
+                        {
+                            Console.WriteLine("@@@@@@ 주의!!!  CGameRoom : 클라이언트로부터 poolManager에 없는 오브젝트를 삭제하라는 요청을 받음. Scene에 이미 있던 오브젝트를 삭제요청한 것으로 예상됨");
+                        }
+                    }
+                    break;
                 case InGameAction_server.Object_transfer_copy:
                     {
                         byte pool_code = msg.Pop_byte();
@@ -187,6 +208,16 @@ namespace GameServer
                             case RoomMember.Others:
                                 {
                                     Cast_others(send_msg, msg.owner);
+                                }
+                                break;
+                            case RoomMember.Own:
+                                {
+                                    Cast_Own(send_msg, msg.owner);
+                                }
+                                break;
+                            case RoomMember.MasterClient:
+                                {
+                                    Cast_MasterClient(send_msg);
                                 }
                                 break;
                         }
@@ -240,8 +271,30 @@ namespace GameServer
             }
             CPacket.Push_back(send_msg);
         }
-        
-       
+        private void Cast_Own(CPacket send_msg, IPeer owner)
+        {
 
+            foreach (IPeer game_user in game_users)
+            {
+                if (owner == game_user)
+                {
+                    game_user.Send(send_msg);
+                    break;
+                }
+            }
+            CPacket.Push_back(send_msg);
+        }
+        private void Cast_MasterClient(CPacket send_msg)
+        {
+            foreach(IPeer game_user in game_users)
+            {
+                if (((CGameUser)game_user).isMasterClient)
+                {
+                    game_user.Send(send_msg);
+                    break;
+                }
+            }
+            CPacket.Push_back(send_msg);
+        } 
     }
 }

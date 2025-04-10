@@ -14,10 +14,10 @@ public class CNetworkManager : MonoBehaviour
     private NetLobbyActionAdmin netLobbyActionAdmin;
     public string remote_endPoint;
     public bool isDevelopMode;
-    public bool isMobiletest;
+    public bool isMobiletest; 
 
-    
     public byte room_id { get; private set; }
+    public bool isMasterClient { get; private set; }// 우선, 마스터는 room_id 가 고정 1일 때에로 하자. 마스터가 나가면 게임은 종료되는 것으로(방을 room_id===1인 방을 만든 사람이 나가도 사라지는 것으로 우선 처리)
 
     private void Awake()
     {
@@ -41,6 +41,13 @@ public class CNetworkManager : MonoBehaviour
             StartCoroutine(ForDevelop_ownStart_coroutine());
         }
     }
+    private void Start()
+    {
+        if (isDevelopMode)
+        {
+            Set_room_id(1);
+        }
+    }
     private IEnumerator ForDevelop_ownStart_coroutine()
     {
         yield return new WaitForSeconds(0.1f);
@@ -53,7 +60,6 @@ public class CNetworkManager : MonoBehaviour
 
         yield return new WaitForSeconds(0.1f);
 
-        Debug.Log("LobbyManager : Invoke_start_game Check");
         CPacket packet = CPacket.Pop_forCreate();
         packet.Push((byte)Pr_target.room);
         packet.Push((byte)Pr_ta_room_target.all);
@@ -65,7 +71,7 @@ public class CNetworkManager : MonoBehaviour
     {
         if(newScene.name == "MainGame")
         {
-            Debug.Log("MainGAme Laoded Check"); // 이벤트가 발동하는 시점이 씬이 생성되고, Awake가 발동하기 전이라, 생각보다 쓸모는 없지 않을까 싶다.
+            // 이벤트가 발동하는 시점이 씬이 생성되고, Awake가 발동하기 전이라, 생각보다 쓸모는 없지 않을까 싶다.
         }
     }
     
@@ -74,10 +80,6 @@ public class CNetworkManager : MonoBehaviour
     private void On_lobby_scene_start()
     {
         netLobbyActionAdmin = FindAnyObjectByType<NetLobbyActionAdmin>();
-        if(netLobbyActionAdmin == null)
-        {
-            Debug.Log("Null??");
-        }
     }
 
     private void Connect()
@@ -133,7 +135,6 @@ public class CNetworkManager : MonoBehaviour
                     {
                         GameManager.instance.Invoke_lateStart();
                         isOnGame = true;
-                        Debug.Log("CNetworkManager : DebugCheck");
                     }
                     break;
             }
@@ -154,6 +155,11 @@ public class CNetworkManager : MonoBehaviour
                         NetObjectManager.instance.Instantiate_object(owner_code, objectCode, pool_code, id, position, rotation);
                     }
                     break;
+                case InGameAction_client.Delete_object:
+                    {
+                        NetObjectManager.instance.Remove_object(msg.Pop_byte(), msg.Pop_byte());
+                    }
+                    break;
                 case InGameAction_client.Object_transfer:
                     {
                         NetObject netObject = NetObjectManager.instance.Get_netObject(msg.Pop_byte(), msg.Pop_byte());
@@ -171,5 +177,8 @@ public class CNetworkManager : MonoBehaviour
     public void Set_room_id(byte room_id)
     {
         this.room_id = room_id;
+        isMasterClient = room_id == 1 ? true : false;
     }
+
+    
 }

@@ -20,7 +20,11 @@ public class PlayerController_Mobile : PlayerController
                 {
                     movingTouchId = touch.fingerId;
                     didMovingTouch = true;
-                    playerMovement.Get_Touch_Position(touch.position);
+                    playerMovement.On_touch_start(touch.position);
+                }
+                else if( (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary) && didMovingTouch)
+                {
+
                 }
                 else if( ( touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled) && didMovingTouch)
                 {

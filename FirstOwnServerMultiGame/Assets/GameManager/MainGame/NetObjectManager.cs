@@ -9,6 +9,8 @@ public class NetObjectManager : MonoBehaviour
     private Dictionary<byte, Dictionary<byte, NetObject>> pools_pool = new Dictionary<byte, Dictionary<byte, NetObject>>();
     public PlayerHealth player_prefab;
 
+    private byte scene_object_index = 0;
+    
     private void Awake()
     {
         if(instance == null)
@@ -19,6 +21,8 @@ public class NetObjectManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        pools_pool[0] = new Dictionary<byte, NetObject>();
     }
 
 
@@ -76,11 +80,34 @@ public class NetObjectManager : MonoBehaviour
         }
         pools_pool[pool_code][id] = netObject;
 
-        Debug.Log($"NetOBjectManager Debug__ ownerCode : {ownerCode}, objectCode : {objectCode}, pool_code : {pool_code}, id : {id}, position : {position}, rotation : {rotation}");
+        //Debug.Log($"NetOBjectManager Debug__ ownerCode : {ownerCode}, objectCode : {objectCode}, pool_code : {pool_code}, id : {id}, position : {position}, rotation : {rotation}");
+    }
+    public void Remove_object(byte pool_code, byte id)
+    {
+        if (pools_pool.ContainsKey(pool_code) && pools_pool[pool_code].ContainsKey(id))
+        {
+            Destroy(pools_pool[pool_code][id]);
+
+            pools_pool[pool_code].Remove(id);
+            if (pools_pool[pool_code].Count <= 0 && pools_pool.Count - pool_code > 0) // 갓 생성된 풀에 오브젝트가 하나밖에 없는 상황에서, 그 오브젝트가 Destroy됐을 때 풀이 삭제 되는 것을 방지
+            {
+                pools_pool.Remove(pool_code);
+            }
+        }
     }
 
     public NetObject Get_netObject(byte pool_code, byte id)
     {
         return pools_pool[pool_code][id];
+    }
+
+    public byte Register_scene_object(NetObject netObject)
+    {
+        pools_pool[0].Add(++scene_object_index, netObject);
+        return scene_object_index;
+    }
+    public void UnRegister_scene_object(byte id)
+    {
+        pools_pool[0].Remove(id);
     }
 }

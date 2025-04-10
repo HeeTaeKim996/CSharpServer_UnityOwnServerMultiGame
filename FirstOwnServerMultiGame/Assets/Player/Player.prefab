@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 1052137612577496, guid: b3a21033f5e25ef47a403070d1d96983, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 4330087673648394, guid: b3a21033f5e25ef47a403070d1d96983, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -111,6 +115,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23b11c4ca715bff419c620c5b3b14a85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isScenePlaced: 0
 --- !u!114 &7583694795239748570
 MonoBehaviour:
   m_ObjectHideFlags: 0

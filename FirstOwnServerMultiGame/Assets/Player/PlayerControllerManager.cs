@@ -26,8 +26,9 @@ public class PlayerControllerManager : MonoBehaviour
         }
     }
 
-    public void Set_PlayerMovement(PlayerMovement playerMovement)
+    public PlayerController Set_PlayerMovement(PlayerMovement playerMovement)
     {
         playerController.Set_PlayerMovement(playerMovement);
+        return playerController;
     }
 }

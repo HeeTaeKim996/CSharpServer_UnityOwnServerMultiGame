@@ -27,6 +27,7 @@ namespace FreeNet
     public enum NetObjectCode : byte 
     {
         Player = 0,
+        Enemy_skeleton = 1,
     }
 
     public struct NetVector3
@@ -47,7 +48,8 @@ namespace FreeNet
     {
         All,
         Others,
-        MasterClient
+        MasterClient,
+        Own
     }
 
 }

@@ -9,7 +9,7 @@ public class PlayerController_PC : PlayerController
     {
         if (Input.GetMouseButtonDown(0))
         {
-            playerMovement.Get_Touch_Position(Input.mousePosition);
+            playerMovement.On_touch_start(Input.mousePosition);
         }
     }
 }

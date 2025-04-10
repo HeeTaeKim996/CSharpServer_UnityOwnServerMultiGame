@@ -11,17 +11,22 @@ public class PlayerMovement : MonoBehaviour
     private PlayerHealth playerHealth;
     private Rigidbody playerRigidbody;
     private Animator playerAnimator;
-    private Coroutine movingCoroutine;
+    private Coroutine currentAction;
 
 
     private float movementSpeed = 5f;
-    private bool isMoving = false;
 
     private string currentAnimation;
+
+    private LayerMask enemyLayer;
+    private float damage = 20f;
+
     public enum AnimationEnum : byte
     {
         Idle,
-        Walk
+        Walk,
+        Attack,
+        DieMotion
     }
 
     private void Awake()
@@ -32,11 +37,11 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Start()
     {
-
+        enemyLayer = LayerMask.GetMask("Enemy");
     }
     private void Update()
     {
-        if (playerHealth.isMine && !isMoving)
+        if (playerHealth.isMine && currentAction == null)
         {
             BaseAnimationCrossFade_Mine(AnimationEnum.Idle, 0.05f);
         }
@@ -45,17 +50,17 @@ public class PlayerMovement : MonoBehaviour
     {
         if (playerHealth.isMine)
         {
-            Invoke_Update_position_rotation_Mine();
+            Invoke_Update_fixed_sync();
         }
     }
 
-    private void Invoke_Update_position_rotation_Mine()
+    private void Invoke_Update_fixed_sync()
     {
         CPacket send_msg = CPacket.Pop_forCreate();
         send_msg.Push((byte)InGameAction_server.Object_transfer_copy);
         send_msg.Push((byte)playerHealth.pool_code);
         send_msg.Push((byte)playerHealth.id);
-        send_msg.Push((byte)PlayerHealth.NetEnum.Update_fixed_sync);
+        send_msg.Push((byte)PlayerHealth.NetEnum__61_90.Update_fixed_sync);
         send_msg.Push((byte)RoomMember.Others);
         send_msg.Push((short)(6 * sizeof(float)));
 
@@ -80,19 +85,30 @@ public class PlayerMovement : MonoBehaviour
         transform.rotation = Quaternion.Euler(new Vector3(rot_x, rot_y, rot_z));
     }
 
-    public void Get_Touch_Position(Vector2 touchPosition)
+    public void On_touch_start(Vector2 touchPosition)
     {
+        if (playerHealth.dead) return;
         Ray ray = Camera.main.ScreenPointToRay(touchPosition);
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit))
         {
-            Vector3 hitPosition = hit.point;
-
-            if (movingCoroutine != null)
+            if (((1 << hit.collider.gameObject.layer) & enemyLayer) != 0)
             {
-                StopCoroutine(movingCoroutine);
+                if(currentAction != null)
+                {
+                    StopCoroutine(currentAction);
+                }
+                currentAction = StartCoroutine(AttackEnemy(hit.collider.gameObject.GetComponent<Enemy>()));
             }
-            movingCoroutine = StartCoroutine(MoveToPoint(new Vector2(hitPosition.x, hitPosition.z)));
+            else
+            {
+                Vector3 hitPosition = hit.point;
+                if (currentAction != null)
+                {
+                    StopCoroutine(currentAction);
+                }
+                currentAction = StartCoroutine(MoveToPoint(new Vector2(hitPosition.x, hitPosition.z)));
+            }
         }
     }
 
@@ -103,7 +119,7 @@ public class PlayerMovement : MonoBehaviour
 
         float powDistance;
 
-        isMoving = true;
+
         BaseAnimationCrossFade_Mine(AnimationEnum.Walk, 0.05f);
 
         do
@@ -118,9 +134,114 @@ public class PlayerMovement : MonoBehaviour
             powDistance = xDiff * xDiff + zDiff * zDiff;
         } while (powDistance > 0.01f);
 
-        isMoving = false;
-        movingCoroutine = null;
+        currentAction = null;
     }
+
+    public IEnumerator AttackEnemy(Enemy enemy)
+    {
+        float distanceToEnemy;
+
+    Back:
+        BaseAnimationCrossFade_Mine(AnimationEnum.Walk, 0.05f);
+        do
+        {
+
+            Vector3 enemyPosition = enemy.transform.position;
+
+            Vector3 lookingVector = (enemyPosition - transform.position).normalized;
+            lookingVector.y = 0;
+            transform.rotation = Quaternion.LookRotation(lookingVector);
+
+            playerRigidbody.MovePosition(playerRigidbody.position + lookingVector * movementSpeed * Time.fixedDeltaTime);
+
+
+            distanceToEnemy = Vector3.Distance(transform.position, enemyPosition);
+            yield return new WaitForFixedUpdate();
+        } while (distanceToEnemy > 1f);
+
+
+        float elapsedTime = 0f;
+        bool isAttacking = false; bool didAttackInvoked = false;
+
+        while (true)
+        {
+            if (!isAttacking)
+            {
+                elapsedTime = 0f;
+                didAttackInvoked = false;
+                BaseAnimationCoroutine_Mine(AnimationEnum.Attack, 0.05f);
+                isAttacking = true;
+
+                if (enemy.dead)
+                {
+                    currentAction = null;
+                    yield break;
+                }
+            }
+            else
+            {
+
+                if(elapsedTime >= 0.383f && !didAttackInvoked)
+                {
+                    if (!enemy.dead)
+                    {
+                        Debug.Log(enemy.dead);
+                        if (CNetworkManager.instance.isMasterClient)
+                        {
+                            Debug.Log("PlyaerMovement : InvokeDamage_Master Check");
+                            playerHealth.InvokeDamage_Master(enemy, damage);
+                        }
+                        else
+                        {
+                            Debug.Log("PlyaerMovement : InvokeDamageToMaster_Others Check");
+                            playerHealth.InvokeDamageToMaster_Others(playerHealth, enemy, damage);
+                        }
+                    }
+
+                    didAttackInvoked = true;
+                }
+
+                distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
+                if(distanceToEnemy > 1.5f)
+                {
+                    goto Back;
+                }
+
+                if(elapsedTime >= 1.267f)
+                {
+                    isAttacking = false;
+                }
+            }
+
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+    }
+
+
+    public void Invoke_DieAction()
+    {
+        if(currentAction != null)
+        {
+            StopCoroutine(currentAction);
+        }
+        currentAction = StartCoroutine(Die_action());
+    }
+    private IEnumerator Die_action()
+    {
+        BaseAnimationCoroutine_Mine(AnimationEnum.DieMotion, 0.2f);
+
+        float duration = 1.883f;
+
+        yield return new WaitForSeconds(duration);
+
+        yield return new WaitForSeconds(3f);
+        playerHealth.On_die_action_finished();
+
+        currentAction = null;
+    }
+    
 
 
     public void BaseAnimationCrossFade_Mine(AnimationEnum animationEnum, float blendTime)
@@ -132,18 +253,7 @@ public class PlayerMovement : MonoBehaviour
         playerAnimator.CrossFade(animationName, blendTime, 0, 0);
         currentAnimation = animationName;
 
-        CPacket send_msg = CPacket.Pop_forCreate();
-        send_msg.Push((byte)InGameAction_server.Object_transfer_copy);
-        send_msg.Push((byte)playerHealth.pool_code);
-        send_msg.Push((byte)playerHealth.id);
-        send_msg.Push((byte)PlayerHealth.NetEnum.Animation_Sync);
-        send_msg.Push((byte)RoomMember.Others);
-
-        send_msg.Push((short)9);
-        send_msg.Push((byte)animationEnum);
-        send_msg.Push((float)blendTime);
-        send_msg.Push((float)0);
-        CNetworkManager.instance.Send(send_msg);
+        CommonMethods.Sync_animation_Mine(playerHealth.pool_code, playerHealth.id, (byte)PlayerHealth.NetEnum__61_90.Animation_Sync, (byte)RoomMember.Others, (byte)animationEnum, blendTime, 0f);
     }
     public void BaseAnimationCoroutine_Mine(AnimationEnum animationEnum, float blendTime)
     {
@@ -151,25 +261,12 @@ public class PlayerMovement : MonoBehaviour
         playerAnimator.CrossFade(animationName, blendTime, 0, 0);
         currentAnimation = animationName;
 
-
-        CPacket send_msg = CPacket.Pop_forCreate();
-        send_msg.Push((byte)InGameAction_server.Object_transfer_copy);
-        send_msg.Push((byte)playerHealth.pool_code);
-        send_msg.Push((byte)playerHealth.id);
-        send_msg.Push((byte)PlayerHealth.NetEnum.Animation_Sync);
-        send_msg.Push((byte)RoomMember.Others);
-
-        send_msg.Push((short)9);
-        send_msg.Push((byte)animationEnum);
-        send_msg.Push((float)blendTime);
-        send_msg.Push((float)0);
-        CNetworkManager.instance.Send(send_msg);
+        CommonMethods.Sync_animation_Mine(playerHealth.pool_code, playerHealth.id, (byte)PlayerHealth.NetEnum__61_90.Animation_Sync, (byte)RoomMember.Others, (byte)animationEnum, blendTime, 0f);
     }
     public void Sync_Animation_Others(CPacket msg)
     {
         AnimationEnum animationEnum = (AnimationEnum)msg.Pop_byte();
         string animationName = animationEnum.ToString();
-        Debug.Log(animationName);
         playerAnimator.CrossFade(animationName, msg.Pop_float(), 0, msg.Pop_float());
     }
 
