@@ -4,7 +4,8 @@ using UnityEngine;
 using FreeNet;
 using FreeNetUnity;
 using UnityEngine.SceneManagement;
-using TMPro;
+
+
 
 public class CNetworkManager : MonoBehaviour
 {
@@ -30,12 +31,15 @@ public class CNetworkManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        if (instance != this) return; // Destroy 가 실행되도, 게임 오브젝트는 LateUpdate 이후, 렌더링 전에 없어진다 해서, instance != null이라 해도, awake와 start는 구문은 실행된다 한다. 따라서 if(instance != this) return; 으로 방지
+
         if (isDevelopMode)
         {
             Set_room_id(1);
         }
         SceneManager.activeSceneChanged += On_scene_changed;
-        cNetUnityService = GetComponent<CNetUnityService>();
+        cNetUnityService = gameObject.AddComponent<CNetUnityService>();
         On_lobby_scene_start();
         Connect();
 
@@ -43,6 +47,11 @@ public class CNetworkManager : MonoBehaviour
         {
             StartCoroutine(ForDevelop_ownStart_coroutine());
         }
+    }
+    private void Start()
+    {
+        if (instance != this) return;
+
     }
 
     private IEnumerator ForDevelop_ownStart_coroutine()

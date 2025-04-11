@@ -7,12 +7,13 @@ public class PlayerControllerManager : MonoBehaviour
     private PlayerController playerController;
     private PlayerController_PC playerController_PC;
     private PlayerController_Mobile playerController_mobile;
-
+    public PlayerHealthSliderAdmin playerHealthSliderAdmin { get; private set; }
 
     private void Awake()
     {
         playerController_PC = GetComponentInChildren<PlayerController_PC>();
         playerController_mobile = GetComponentInChildren<PlayerController_Mobile>();
+        playerHealthSliderAdmin = GetComponentInChildren<PlayerHealthSliderAdmin>();
 
         if(CNetworkManager.instance.isMobiletest || Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer)
         {

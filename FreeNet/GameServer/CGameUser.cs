@@ -48,6 +48,14 @@ namespace GameServer
             Console.WriteLine("Player Disconnected");
 
             Program.Remove_user(this);
+            if(game_room != null)
+            {
+                game_room.Remove_user(this);
+            }
+            else
+            {
+                Program.cGameServer.Exit_lobby(this);
+            }
         }
 
         void IPeer.Disconnect()
@@ -86,7 +94,7 @@ namespace GameServer
             else
             {
                 game_room.OnGame_task(msg);
-
+                
             }
 
             CPacket.Push_back(msg);

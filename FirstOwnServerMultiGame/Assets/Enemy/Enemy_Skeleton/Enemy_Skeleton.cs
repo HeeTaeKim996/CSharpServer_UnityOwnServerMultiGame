@@ -15,7 +15,6 @@ public class Enemy_Skeleton : FieldEnemy
     {
         base.NetMethod(msg);
         NetEnum__121_150 netEnum = (NetEnum__121_150)byteNetEnum;
-        Debug.Log(netEnum.ToString());
         switch (netEnum)
         {
             case NetEnum__121_150.UpdateFixedSync_Others:
@@ -25,7 +24,6 @@ public class Enemy_Skeleton : FieldEnemy
                 break;
             case NetEnum__121_150.Sync_Animation_Others:
                 {
-                    Debug.Log("Check");
                     Sync_Animation_Others(msg);
                 }
                 break;
@@ -40,7 +38,7 @@ public class Enemy_Skeleton : FieldEnemy
     private IEnumerator nextAction;
     private float movementSpeed = 4f;
 
-    private float damage = 1f;
+    private float damage = 15f;
 
     public enum AnimationEnum : byte
     {
@@ -131,7 +129,9 @@ public class Enemy_Skeleton : FieldEnemy
 
     private IEnumerator On_idle_layder()
     {
+        yield return null;
         BaseAnimationCrossFade_Mine(AnimationEnum.Idle, 0.2f);
+
 
         while (true)
         {

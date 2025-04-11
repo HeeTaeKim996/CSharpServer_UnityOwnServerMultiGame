@@ -31,6 +31,9 @@ public class LobbyManager : MonoBehaviour
     [SerializeField]
     private Button start_game_button;
 
+    [SerializeField]
+    private Button exit_room_button;
+
     private void Awake()
     {
         if(instance == null)
@@ -48,6 +51,7 @@ public class LobbyManager : MonoBehaviour
         lobby_background.gameObject.SetActive(false);
         room_background.gameObject.SetActive(false);
         start_game_button.onClick.AddListener(Invoke_start_game);
+        exit_room_button.onClick.AddListener(On_exit_room_button_clicked);
     }
 
     public void lobby_start()
@@ -67,14 +71,16 @@ public class LobbyManager : MonoBehaviour
         {
             Destroy(room.gameObject);
         }
+        active_rooms.Clear();
 
         int room_count = msg.Pop_byte();
         for(int i = 0; i < room_count; i++)
         {
             string room_name = msg.Pop_string();
             int rooms_user_count = msg.Pop_byte();
+            bool is_room_sealed = msg.Pop_byte() != 0 ? true : false;
             Room room = Instantiate(room_prefab);
-            room.Initialize(room_name, rooms_user_count);
+            room.Initialize(room_name, rooms_user_count, is_room_sealed);
 
             RectTransform roomRect = room.GetComponent<RectTransform>();
             roomRect.SetParent(room_rects[i]);
@@ -125,5 +131,15 @@ public class LobbyManager : MonoBehaviour
         packet.Push((byte)Pr_ta_room_target.all);
         packet.Push((byte)Pr_ta_room_action.game_start_masterClient);
         CNetworkManager.instance.Send(packet);
+    }
+
+    private void On_exit_room_button_clicked()
+    {
+        lobby_start();
+        CPacket send_msg = CPacket.Pop_forCreate();
+        send_msg.Push((byte)Pr_target.room);
+        send_msg.Push((byte)Pr_ta_room_target.room);
+        send_msg.Push((byte)Pr_ta_room_action.exit_room);
+        CNetworkManager.instance.Send(send_msg);
     }
 }

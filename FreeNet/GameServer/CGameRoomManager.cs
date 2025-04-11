@@ -38,6 +38,12 @@ namespace CGameServer
             return game_rooms.ContainsKey(room_name);
         }
 
+        public void Remove_room(string room_name)
+        {
+            game_rooms[room_name].Remove_room();
+            game_rooms.Remove(room_name);
+            Program.cGameServer.Inform_rooms_info();
+        }
 
 
         public CPacket Return_rooms_info_packet()
@@ -50,6 +56,7 @@ namespace CGameServer
             {
                 return_packet.Push((string)kvp.Key);
                 return_packet.Push((byte)kvp.Value.user_count);
+                return_packet.Push((byte)Convert.ToByte(kvp.Value.is_room_sealed));
             }
 
             return return_packet;

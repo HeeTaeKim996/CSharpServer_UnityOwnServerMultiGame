@@ -9,6 +9,7 @@ public class PlayerMovement : MonoBehaviour
 {
 
     private PlayerHealth playerHealth;
+    private PlyaerPointerAdmin playerPointerAdmin;
     private Rigidbody playerRigidbody;
     private Animator playerAnimator;
     private Coroutine currentAction;
@@ -21,8 +22,6 @@ public class PlayerMovement : MonoBehaviour
     private LayerMask enemyLayer;
     private float damage = 20f;
 
-    public GameObject tempObject;
-    private GameObject tempInstan;
 
     public enum AnimationEnum : byte
     {
@@ -37,14 +36,12 @@ public class PlayerMovement : MonoBehaviour
         playerHealth = GetComponent<PlayerHealth>();
         playerRigidbody = GetComponent<Rigidbody>();
         playerAnimator = GetComponent<Animator>();
+        playerPointerAdmin = GetComponent<PlyaerPointerAdmin>();
     }
     private void Start()
     {
         enemyLayer = LayerMask.GetMask("Enemy");
 
-        Debug.Log(tempObject);
-        tempInstan = Instantiate(tempObject);
-        tempInstan.gameObject.SetActive(false);
     }
     private void Update()
     {
@@ -129,6 +126,8 @@ public class PlayerMovement : MonoBehaviour
 
         BaseAnimationCrossFade_Mine(AnimationEnum.Walk, 0.05f);
 
+        playerPointerAdmin.Retrieve_pointer();
+
         do
         {
             playerRigidbody.MovePosition(playerRigidbody.position + lookingVector * movementSpeed * Time.fixedDeltaTime);
@@ -148,16 +147,12 @@ public class PlayerMovement : MonoBehaviour
     {
         float distanceToEnemy;
 
-        tempInstan.gameObject.SetActive(true);
-        tempInstan.transform.SetParent(enemy.transform, false);
-        tempInstan.transform.position = enemy.transform.position;
+        playerPointerAdmin.Attach_healthSlider(enemy);
 
     Back:
         BaseAnimationCrossFade_Mine(AnimationEnum.Walk, 0.05f);
         do
         {
-
-
             Vector3 enemyPosition = enemy.transform.position;
 
             Vector3 lookingVector = (enemyPosition - transform.position).normalized;
@@ -199,12 +194,10 @@ public class PlayerMovement : MonoBehaviour
                     {
                         if (CNetworkManager.instance.isMasterClient)
                         {
-                            Debug.Log("PlyaerMovement : InvokeDamage_Master Check");
                             playerHealth.InvokeDamage_Master(enemy, damage);
                         }
                         else
                         {
-                            Debug.Log("PlyaerMovement : InvokeDamageToMaster_Others Check");
                             playerHealth.InvokeDamageToMaster_Others(playerHealth, enemy, damage);
                         }
                     }

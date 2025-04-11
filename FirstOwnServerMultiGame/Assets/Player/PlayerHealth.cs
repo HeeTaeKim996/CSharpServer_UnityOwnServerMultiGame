@@ -57,7 +57,11 @@ public class PlayerHealth : LivingEntity
             virtualCamera.LookAt = transform;
             virtualCamera.Follow = transform;
 
-            playerController = FindObjectOfType<PlayerControllerManager>().Set_PlayerMovement(playerMovement);
+            PlayerControllerManager playerControllerManager = FindObjectOfType<PlayerControllerManager>();
+
+            playerController = playerControllerManager.Set_PlayerMovement(playerMovement);
+            playerControllerManager.playerHealthSliderAdmin.Get_player(this);
+
         }
     }
 

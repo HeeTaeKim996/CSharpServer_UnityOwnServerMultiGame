@@ -39,7 +39,9 @@ public class GameManager : MonoBehaviour
         Vector2 randomCircle = UnityEngine.Random.insideUnitCircle;
         Vector3 spawnPosition = new Vector3(spawnPivot.position.x + randomCircle.x * 5f, spawnPivot.position.y, spawnPivot.position.z + randomCircle.y * 5f);
 
+
         CommonMethods.Instantiate_netObject(CNetworkManager.instance.room_id, NetObjectCode.Player, spawnPosition, Vector3.zero);
+        
 
         //Debug.Log($"GameMAnaer DebugCHeck __ room_id : {CNetworkManager.instance.room_id}, NetObjectCode : {NetObjectCode.Player}, spawnPosition : {spawnPosition}, rotation : {Vector3.zero}");
     }

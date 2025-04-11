@@ -112,7 +112,7 @@ namespace FreeNet
 
 
                 Interlocked.Increment(ref sent_count);
-                Console.WriteLine($"보낸 소켓 : {e.SocketError}, Transferred : {e.BytesTransferred}, sent_count : {sent_count}");
+                //Console.WriteLine($"보낸 소켓 : {e.SocketError}, Transferred : {e.BytesTransferred}, sent_count : {sent_count}");
 
 
                 CPacket.Push_back(sending_queue.Dequeue());

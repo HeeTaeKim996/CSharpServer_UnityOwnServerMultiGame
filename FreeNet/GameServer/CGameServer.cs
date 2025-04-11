@@ -80,9 +80,14 @@ namespace GameServer
                         Enter_room_requested((CGameUser)msg.owner, msg.Pop_string());
                     }
                     break;
+                default:
+                    {
+                        Console.WriteLine();
+                        throw new ArgumentNullException($"CGameServer : default 감지 {lobby_action.ToString()}");
+                    }
             }
         }
-
+        
 
         public void Enter_lobby(CGameUser game_user)
         {
@@ -92,7 +97,7 @@ namespace GameServer
             }
             Inform_rooms_info();
         }
-        private void Exit_lobby(CGameUser game_user)
+        public void Exit_lobby(CGameUser game_user)
         {
             lock (cs_lobby_users)
             {
@@ -100,7 +105,7 @@ namespace GameServer
             }
         }
 
-        private void Inform_rooms_info()
+        public void Inform_rooms_info()
         {
             CPacket msg = roomManager.Return_rooms_info_packet();
             Cast_lobby_users(msg);
@@ -141,6 +146,10 @@ namespace GameServer
             }
 
             Inform_rooms_info();
+        }
+        public void Remove_room(string room_name)
+        {
+            roomManager.Remove_room(room_name);
         }
 
         private void Enter_room_requested(CGameUser game_user, string room_name)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace FreeNet
 {
@@ -32,7 +33,16 @@ namespace FreeNet
                 cPacket_pool.Push(packet);
             }
 
-            Console.WriteLine(cPacket_pool.Count);
+            // Debug 1 
+            {
+                Console.WriteLine(cPacket_pool.Count);
+            }
+
+            // Debug 2
+            {
+                //packet.Set_position(2);
+                //Console.WriteLine($"{cPacket_pool.Count} // {packet.Pop_byte()} // {packet.Pop_byte()} // {packet.Pop_byte()} // {packet.Pop_byte()} ");
+            }
         }
         public static CPacket Pop()
         {
@@ -44,6 +54,14 @@ namespace FreeNet
             lock (cs_cPacket_pool)
             {
                 return cPacket_pool.Pop();
+            }
+        }
+
+        public static int Count
+        {
+            get
+            {
+                return cPacket_pool.Count;
             }
         }
     }

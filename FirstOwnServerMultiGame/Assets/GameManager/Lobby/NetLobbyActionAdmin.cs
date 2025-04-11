@@ -48,6 +48,12 @@ public class NetLobbyActionAdmin : MonoBehaviour
                     SceneManager.LoadScene("MainGame");
                 }
                 break;
+            case Pr_ca_room_action.back_to_lobby:
+                {
+                    Debug.Log("메세지 알림 대체 : 마스터클라이언트가 방을 나가, 방이 삭제됨");
+                    lobbyManager.lobby_start();
+                }
+                break;
         }
     }
 }

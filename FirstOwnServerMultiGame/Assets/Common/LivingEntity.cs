@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using FreeNet;
@@ -43,6 +44,8 @@ public abstract class LivingEntity : NetObject
     public float health { get; protected set; }
     public float maxHealth { get; protected set; }
 
+    public event Action Event_invoke_detach_from_entity;
+    public event Action Event_on_attached_entitys_GetDamaged;
 
     public virtual void OnDamage_MasterClient(float damage, LivingEntity fromEntity)
     {
@@ -103,12 +106,14 @@ public abstract class LivingEntity : NetObject
         {
             Die();
         }
+        Event_on_attached_entitys_GetDamaged?.Invoke();
     }
-
     protected virtual void Die()
     {
         dead = true;
+        Event_invoke_detach_from_entity?.Invoke();
     }
+
 
 
 

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using CGameServer;
 using FreeNet;
 using GameServer;
 
@@ -33,7 +35,7 @@ namespace GameServer
         }
         public void Add_user(CGameUser added_user)
         {
-            Console.WriteLine("CGameRoom 디버그 체크_(1)");
+            if (is_room_sealed) return;
 
             bool isMasterClient = user_count == 0 ? true : false;
             game_users.Add(added_user);
@@ -49,10 +51,8 @@ namespace GameServer
 
 
             Inform_updated_room_info();
-
-            Console.WriteLine($"CGAmeRoom 디버그. {user_count}");
         }
-        public void remove_user(CGameUser remove_user)
+        public void Remove_user(CGameUser remove_user)
         {
             remove_user.on_exit_room(this);
             game_users.Remove(remove_user);
@@ -130,9 +130,35 @@ namespace GameServer
                             CPacket send_msg = CPacket.Pop_forCreate();
                             send_msg.Push((byte)Pr_client_action.game_late_start);
                             Cast_all(send_msg);
+
+                            Seal_the_room();
                         }
                     }
                     break;
+                case Pr_ta_room_action.exit_room:
+                    {
+                        CGameUser sender = (CGameUser)msg.owner;
+                        if(!sender.isMasterClient)
+                        {
+                            Remove_user(sender);
+                            Program.cGameServer.Enter_lobby(sender);
+                        }
+                        else
+                        {
+                            CPacket send_msg = CPacket.Pop_forCreate();
+                            send_msg.Push((byte)Pr_client_action.room_action);
+                            send_msg.Push((byte)Pr_ca_room_action.back_to_lobby);
+                            Cast_others(send_msg, msg.owner);
+
+                            Program.cGameServer.Remove_room(room_name);
+                        }
+                    }
+                    break;
+                    
+                default:
+                    {
+                        throw new ArgumentNullException($"CGameRoom : lobby_action에서 디펄트 수신 {lobby_action.ToString()}");
+                    }
             }
 
 
@@ -143,6 +169,16 @@ namespace GameServer
                         Cast_all(send_packet);
                     }
                     break;
+                case Pr_ta_room_target.room:
+                    {
+                        CPacket.Push_back(send_packet);
+                    }
+                    break;
+                default:
+                    {
+                        Console.WriteLine(Convert.ToInt16(room_target));
+                        throw new ArgumentNullException($"CGameRoom : room_target에서 디펄트 수신 {room_target.ToString()}");
+                    }
             }
         }
         
@@ -220,9 +256,17 @@ namespace GameServer
                                     Cast_MasterClient(send_msg);
                                 }
                                 break;
+                            default:
+                                {
+                                    throw new ArgumentNullException($"CGameRoom : roomMember에서 디펄트 수신 {roomMember.ToString()}");
+                                }
                         }
                     }
                     break;
+                default:
+                    {
+                        throw new ArgumentNullException($"CGameRoom : InGameAction에서 디펄트 수신 {inGameAction.ToString()}");
+                    }
             }
 
         }
@@ -251,6 +295,17 @@ namespace GameServer
             msg.Push((byte)id);
             Cast_all(msg);
         }
+
+        public void Remove_room()
+        {
+            for(int i = game_users.Count - 1; i >= 0; i--)
+            {
+                CGameUser user = (CGameUser)game_users[i];
+                Remove_user(user);
+                Program.cGameServer.Enter_lobby(user);
+            }
+        }
+
 
         private void Cast_all(CPacket send_msg)
         {
@@ -296,5 +351,11 @@ namespace GameServer
             }
             CPacket.Push_back(send_msg);
         } 
+
+        private void Seal_the_room()
+        {
+            is_room_sealed = true;
+            Program.cGameServer.Inform_rooms_info();
+        }
     }
 }

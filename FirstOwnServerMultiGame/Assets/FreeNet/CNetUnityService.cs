@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using UnityEngine;
 using FreeNet;
+using UnityEngine.SceneManagement;
 
 namespace FreeNetUnity 
 {
@@ -59,6 +60,11 @@ namespace FreeNetUnity
             {
                 cRemoteServerPeer.Send(msg);
                 CPacket.Push_back(msg);
+
+                //Debug
+                {   
+                    //Debug.Log(CPacketBufferManager.Count);
+                }
             }
             catch(Exception e)
             {

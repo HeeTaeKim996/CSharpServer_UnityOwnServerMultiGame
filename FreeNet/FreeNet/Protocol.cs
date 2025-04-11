@@ -38,11 +38,13 @@ namespace FreeNet
 
     public enum Pr_ta_room_action : byte
     {
-        ts = 0,
+        ts,
 
-        game_start_masterClient = 1,
+        game_start_masterClient,
 
-        game_load_completed = 2,
+        game_load_completed,
+
+        exit_room,
 
         end
     }
@@ -64,11 +66,13 @@ namespace FreeNet
     }
     public enum Pr_ca_room_action
     {
-        room_info = 0,
+        room_info,
 
-        room_start = 2,
+        room_start,
 
-        game_start
+        game_start,
+
+        back_to_lobby
     }
 
 

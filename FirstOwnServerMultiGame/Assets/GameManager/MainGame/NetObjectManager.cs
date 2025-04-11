@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using FreeNet;
@@ -44,7 +45,7 @@ public class NetObjectManager : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         Inform_client_is_ready();
     }
-
+   
     private void Inform_client_is_ready()
     {
         CPacket msg = CPacket.Pop_forCreate();
@@ -103,7 +104,15 @@ public class NetObjectManager : MonoBehaviour
 
     public NetObject Get_netObject(byte pool_code, byte id)
     {
-        return pools_pool[pool_code][id];
+        try
+        {
+            return pools_pool[pool_code][id];
+        }
+        catch(Exception e)
+        {
+            Debug.Log($"NetObjectManager : {e.Message} // {pool_code} - {id}");
+            return null;
+        }
     }
 
     public byte Register_scene_object(NetObject netObject)

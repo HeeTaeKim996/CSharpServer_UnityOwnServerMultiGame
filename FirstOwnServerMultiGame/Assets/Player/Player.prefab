@@ -72,6 +72,9 @@ PrefabInstance:
       addedObject: {fileID: 7583694795239748570}
     - targetCorrespondingSourceObject: {fileID: 1052137612577496, guid: b3a21033f5e25ef47a403070d1d96983, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 3189503006837716530}
+    - targetCorrespondingSourceObject: {fileID: 1052137612577496, guid: b3a21033f5e25ef47a403070d1d96983, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 8703114988876504486}
     - targetCorrespondingSourceObject: {fileID: 1052137612577496, guid: b3a21033f5e25ef47a403070d1d96983, type: 3}
       insertIndex: -1
@@ -129,7 +132,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a731bde52aeb4d64283f31633f400416, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tempObject: {fileID: 3042883827929386, guid: 12f3606c1a8138e4089a193dcac98101, type: 3}
+--- !u!114 &3189503006837716530
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6154325919973416413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc725008e5bf7cd4b95f42004a83d86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  healthPointer_prefab: {fileID: 7756860133899052003, guid: c4d900f008bcb684e8e9630edcb08661, type: 3}
 --- !u!54 &8703114988876504486
 Rigidbody:
   m_ObjectHideFlags: 0

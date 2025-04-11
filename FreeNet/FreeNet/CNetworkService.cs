@@ -131,7 +131,7 @@ namespace FreeNet
             }
             else
             {
-                Console.WriteLine($"Error : {e.SocketError}, Transferred : {e.BytesTransferred}");
+                Console.WriteLine($"CNetowkrService __  Error : {e.SocketError}, Transferred : {e.BytesTransferred}");
                 close_clientSocket(token);
             }
         }
