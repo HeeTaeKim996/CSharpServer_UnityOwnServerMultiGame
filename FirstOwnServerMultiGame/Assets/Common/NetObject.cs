@@ -77,7 +77,7 @@ public abstract class NetObject : MonoBehaviour
     }
 
 
-    public void OnDestroy()
+    protected virtual void OnDestroy()
     {
         GameManager.instance.event_lateStart -= Late_start;
         if (instanType == InstanType.ScenePlaced_each)

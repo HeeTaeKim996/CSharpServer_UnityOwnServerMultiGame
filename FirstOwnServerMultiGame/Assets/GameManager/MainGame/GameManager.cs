@@ -34,6 +34,10 @@ public class GameManager : MonoBehaviour
     {
         event_lateStart?.Invoke();
     }
+    private void OnDestroy()
+    {
+        instance = null;
+    }
     private void late_start()
     {
         Vector2 randomCircle = UnityEngine.Random.insideUnitCircle;

@@ -29,6 +29,7 @@ namespace GameServer
         public void on_exit_room(CGameRoom room)
         {
             game_room = null;
+            isOnGame = false;
         }
 
         void IPeer.On_message(Const_buffer buffer)
@@ -50,7 +51,14 @@ namespace GameServer
             Program.Remove_user(this);
             if(game_room != null)
             {
-                game_room.Remove_user(this);
+                if (isMasterClient)
+                {
+                    game_room.QuitThePlayingGame_on_masterClient_quit(this);
+                }
+                else
+                {
+                    game_room.Remove_user(this);
+                }
             }
             else
             {
@@ -85,7 +93,6 @@ namespace GameServer
                             else
                             {
                                 Console.WriteLine("CGameUser : Game Room 이 존재하지 않습니다");
-                                CPacket.Push_back(msg);
                             }
                         }
                         break;

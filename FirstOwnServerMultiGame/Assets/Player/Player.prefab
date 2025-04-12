@@ -145,6 +145,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   healthPointer_prefab: {fileID: 7756860133899052003, guid: c4d900f008bcb684e8e9630edcb08661, type: 3}
+  itemPointer_prefab: {fileID: 8857721058800358146, guid: 1a23da5e659a41d4aad4a0b70f5642f2, type: 3}
 --- !u!54 &8703114988876504486
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -11,6 +11,7 @@ public class NetLobbyActionAdmin : MonoBehaviour
     private void Awake()
     {
         lobbyManager = GetComponent<LobbyManager>();
+        CNetworkManager.instance.Set_net_lobby_Action_Admin(this);
     }
 
     public void Net_lobbyAction_task(CPacket msg)

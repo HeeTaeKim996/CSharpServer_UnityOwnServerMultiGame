@@ -11,6 +11,7 @@ public class NetObjectManager : MonoBehaviour
     private Dictionary<byte, Dictionary<byte, NetObject>> pools_pool = new Dictionary<byte, Dictionary<byte, NetObject>>();
     public PlayerHealth player_prefab;
     public Enemy_Skeleton enemy_skeleton_prefab;
+    public Item_health item_health_prefab;
 
     private byte scene_object_index = 0;
     
@@ -39,6 +40,10 @@ public class NetObjectManager : MonoBehaviour
         {
             Inform_client_is_ready(); // 넷 옵젝 매니저가 처리하는 게 좋을듯 해서 여기서, 서버로 보내는 코드 작성
         }
+    }
+    private void OnDestroy()
+    {
+        instance = null;
     }
     private IEnumerator ForDevelop_lateReady()
     {
@@ -71,8 +76,14 @@ public class NetObjectManager : MonoBehaviour
                     netObject = Instantiate(enemy_skeleton_prefab, position, Quaternion.Euler(rotation));
                 }
                 break;
+            case NetObjectCode.Item_health:
+                {
+                    netObject = Instantiate(item_health_prefab, position, Quaternion.Euler(rotation));
+                }
+                break;
             default:
                 {
+                    Debug.LogError("NetObjectManager : 코드에 대응하는 오브젝트가 할당되지 않았습니다");
                     netObject = null;
                 }
                 break;

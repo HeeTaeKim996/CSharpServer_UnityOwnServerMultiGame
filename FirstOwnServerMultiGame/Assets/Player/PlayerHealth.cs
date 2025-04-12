@@ -12,6 +12,8 @@ public class PlayerHealth : LivingEntity
         Update_fixed_sync = 61,
 
         Animation_Sync = 62,
+
+        Use_item = 63,
     }
     
     public override void NetMethod(CPacket msg)
@@ -42,7 +44,7 @@ public class PlayerHealth : LivingEntity
         base.Awake();
         playerMovement = GetComponent<PlayerMovement>();
         maxHealth = 100f;
-        health = maxHealth;
+        health = maxHealth * 0.6f;
     }
     protected override void Start()
     {

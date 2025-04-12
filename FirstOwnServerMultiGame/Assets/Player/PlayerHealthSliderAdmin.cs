@@ -23,6 +23,7 @@ public class PlayerHealthSliderAdmin : MonoBehaviour
         this.playerHealth = playerHealth;
         playerHealth.Event_invoke_detach_from_entity += On_die;
         playerHealth.Event_on_attached_entitys_GetDamaged += On_damage;
+        playerHealth.Event_on_RestoreHealth += On_restore;
 
         healthSlider.maxValue = playerHealth.maxHealth;
         healthSlider.value = playerHealth.health;
@@ -56,7 +57,37 @@ public class PlayerHealthSliderAdmin : MonoBehaviour
     } 
     private void On_restore()
     {
+        if(sliderCorouitne != null)
+        {
+            StopCoroutine(sliderCorouitne);
+        }
+        sliderCorouitne = StartCoroutine(RestoreCoroutine(playerHealth.health));
+    }
+    private IEnumerator RestoreCoroutine(float health)
+    {
+        easeHealthSlider.value = healthSlider.value;
+        float minPlusValue = (float)playerHealth.maxHealth * 0.001f;
 
+        while(healthSlider.value < health)
+        {
+            float plusValue = (float)(health - healthSlider.value) * Time.deltaTime * 2f;
+            if(minPlusValue > plusValue)
+            {
+                healthSlider.value += minPlusValue;
+                easeHealthSlider.value += minPlusValue;
+            }
+            else
+            {
+                healthSlider.value += plusValue;
+                easeHealthSlider.value += plusValue;
+            }
+
+            yield return null;
+        }
+        healthSlider.value = health;
+        easeHealthSlider.value = health;
+
+        sliderCorouitne = null;
     }
     private void On_die()
     {

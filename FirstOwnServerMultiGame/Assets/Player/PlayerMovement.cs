@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using FreeNet;
 using JetBrains.Annotations;
 using UnityEngine;
+using static UnityEngine.EventSystems.EventTrigger;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -20,6 +21,7 @@ public class PlayerMovement : MonoBehaviour
     private string currentAnimation;
 
     private LayerMask enemyLayer;
+    private LayerMask itemLayer;
     private float damage = 20f;
 
 
@@ -41,7 +43,7 @@ public class PlayerMovement : MonoBehaviour
     private void Start()
     {
         enemyLayer = LayerMask.GetMask("Enemy");
-
+        itemLayer = LayerMask.GetMask("Item");
     }
     private void Update()
     {
@@ -103,6 +105,14 @@ public class PlayerMovement : MonoBehaviour
                     StopCoroutine(currentAction);
                 }
                 currentAction = StartCoroutine(AttackEnemy(hit.collider.gameObject.GetComponent<Enemy>()));
+            }
+            else if( ( (1 << hit.collider.gameObject.layer) & itemLayer) != 0)
+            {
+                if(currentAction != null)
+                {
+                    StopCoroutine(currentAction);
+                }
+                currentAction = StartCoroutine(GetItem(hit.collider.gameObject.GetComponent<Item>()));
             }
             else
             {
@@ -221,6 +231,59 @@ public class PlayerMovement : MonoBehaviour
             elapsedTime += Time.deltaTime;
             yield return null;
         }
+    }
+    public IEnumerator GetItem(Item item)
+    {
+        float distanceToItem;
+
+        playerPointerAdmin.Attach_itemPointer(item);
+
+        BaseAnimationCrossFade_Mine(AnimationEnum.Walk, 0.05f);
+        do
+        {
+            Vector3 itemPosition = item.transform.position;
+
+            Vector3 lookingVector = (itemPosition - transform.position).normalized;
+            lookingVector.y = 0;
+            transform.rotation = Quaternion.LookRotation(lookingVector);
+
+            playerRigidbody.MovePosition(playerRigidbody.position + lookingVector * movementSpeed * Time.fixedDeltaTime);
+
+
+            distanceToItem = Vector3.Distance(transform.position, itemPosition);
+            yield return new WaitForFixedUpdate();
+        } while (distanceToItem > 1f);
+
+        if (CNetworkManager.instance.isMasterClient)
+        {
+            item.Use_masterClient(playerHealth);
+        }
+        else
+        {
+            // Send To Master To Use Item
+            { 
+                CPacket send_msg = CPacket.Pop_forCreate();
+                send_msg.Push((byte)InGameAction_server.Object_transfer_copy);
+                send_msg.Push((byte)playerHealth.pool_code);
+                send_msg.Push((byte)playerHealth.id);
+                send_msg.Push((byte)PlayerHealth.NetEnum__61_90.Use_item);
+                send_msg.Push((byte)RoomMember.MasterClient);
+
+                send_msg.Push((short)2);
+
+                send_msg.Push((byte)item.pool_code);
+                send_msg.Push((byte)item.id);
+                CNetworkManager.instance.Send(send_msg);
+            }
+        }
+
+        currentAction = null;
+    }
+
+    public void Invoke_use_item_masterClient(CPacket msg)
+    {
+        Item item = (Item)NetObjectManager.instance.Get_netObject(msg.Pop_byte(), msg.Pop_byte());
+        item.Use_masterClient(playerHealth);
     }
 
 

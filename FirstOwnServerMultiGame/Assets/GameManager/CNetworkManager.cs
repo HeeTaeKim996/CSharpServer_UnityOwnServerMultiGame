@@ -4,6 +4,7 @@ using UnityEngine;
 using FreeNet;
 using FreeNetUnity;
 using UnityEngine.SceneManagement;
+using System.Threading;
 
 
 
@@ -12,6 +13,7 @@ public class CNetworkManager : MonoBehaviour
     public static CNetworkManager instance;
     private CNetUnityService cNetUnityService;
     private bool isOnGame = false;
+    private bool is_scene_load_completed = true;
     private NetLobbyActionAdmin netLobbyActionAdmin;
     public string remote_endPoint;
     public bool isDevelopMode;
@@ -40,7 +42,7 @@ public class CNetworkManager : MonoBehaviour
         }
         SceneManager.activeSceneChanged += On_scene_changed;
         cNetUnityService = gameObject.AddComponent<CNetUnityService>();
-        On_lobby_scene_start();
+    
         Connect();
 
         if (SceneManager.GetActiveScene().name == "MainGame") // 테스트 용도
@@ -83,9 +85,9 @@ public class CNetworkManager : MonoBehaviour
     
 
 
-    private void On_lobby_scene_start()
+    public void Set_net_lobby_Action_Admin(NetLobbyActionAdmin netLobbyActionAdmin)
     {
-        netLobbyActionAdmin = FindAnyObjectByType<NetLobbyActionAdmin>();
+        this.netLobbyActionAdmin = netLobbyActionAdmin;
     }
 
     private void Connect()
@@ -122,6 +124,8 @@ public class CNetworkManager : MonoBehaviour
     {
         if (!isOnGame)
         {
+            if (!is_scene_load_completed) return;
+
             Pr_client_action client_action = (Pr_client_action)msg.Pop_byte();
             switch (client_action) 
             {
@@ -158,6 +162,12 @@ public class CNetworkManager : MonoBehaviour
                         byte id = msg.Pop_byte();
                         Vector3 position = new Vector3(msg.Pop_float(), msg.Pop_float(), msg.Pop_float());
                         Vector3 rotation = new Vector3(msg.Pop_float(), msg.Pop_float(), msg.Pop_float());
+
+                        if(NetObjectManager.instance == null)
+                        {
+                            Debug.Log("@@@@@@@@@@@@DEEEBBBUGUG00");
+                        }
+
                         NetObjectManager.instance.Instantiate_object(owner_code, objectCode, pool_code, id, position, rotation);
                     }
                     break;
@@ -170,6 +180,33 @@ public class CNetworkManager : MonoBehaviour
                     {
                         NetObject netObject = NetObjectManager.instance.Get_netObject(msg.Pop_byte(), msg.Pop_byte());
                         netObject.NetMethod(msg);
+                    }
+                    break;
+                case InGameAction_client.ETC:
+                    {
+                        Ga_c_Etc_action etcAction = (Ga_c_Etc_action)msg.Pop_byte();
+                        switch (etcAction)
+                        {
+                            case Ga_c_Etc_action.BackToLobby:
+                                {
+                                    isOnGame = false;
+                                    is_scene_load_completed = false;
+                                    SceneManager.LoadScene("LobbyScene");
+                                    Debug.Log("CetworkMAnager : 의 디버그입니다. 방장이 게임을 종료하여 로비로 돌아옵니다.");
+                                }
+                                break;
+                            default:
+                                {
+                                    Debug.LogError($"Switch의 디펄트 감지. {etcAction.ToString()}");
+                                }
+                                break;
+                        }
+
+                    }
+                    break;
+                default:
+                    {
+                        Debug.LogError($"Switch의 디펄트 감지. {inGameAction.ToString()}");
                     }
                     break;
             }
@@ -186,5 +223,8 @@ public class CNetworkManager : MonoBehaviour
         isMasterClient = room_id == 1 ? true : false;
     }
 
-    
+    public void Get_Scene_Ready()
+    {
+        is_scene_load_completed = true;
+    }    
 }

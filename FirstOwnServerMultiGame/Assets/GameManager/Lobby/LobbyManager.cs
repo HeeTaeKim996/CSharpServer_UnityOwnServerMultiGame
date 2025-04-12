@@ -53,6 +53,18 @@ public class LobbyManager : MonoBehaviour
         start_game_button.onClick.AddListener(Invoke_start_game);
         exit_room_button.onClick.AddListener(On_exit_room_button_clicked);
     }
+    private void Start()
+    {
+        lobby_start();
+        CNetworkManager.instance.Get_Scene_Ready();
+    }
+    private void OnDestroy()
+    {
+        if(instance == this)
+        {
+            instance = null;
+        }
+    }
 
     public void lobby_start()
     {
@@ -67,10 +79,12 @@ public class LobbyManager : MonoBehaviour
 
     public void Lobby_list_update(CPacket msg)
     {
-        foreach(Room room in active_rooms)
+        foreach (Room room in active_rooms)
         {
             Destroy(room.gameObject);
         }
+
+
         active_rooms.Clear();
 
         int room_count = msg.Pop_byte();

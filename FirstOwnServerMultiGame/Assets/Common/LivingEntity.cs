@@ -13,6 +13,8 @@ public abstract class LivingEntity : NetObject
         Sync_health_others = 32,
 
         InvokeDamage_Master_fromOthers = 33,
+
+        RestoreHealth_Others = 34,
     }
 
     public override void NetMethod(CPacket msg)
@@ -36,6 +38,11 @@ public abstract class LivingEntity : NetObject
                     InvokeDamage_Master_fromOthers(msg);
                 }
                 break;
+            case NetEnum__31_60.RestoreHealth_Others:
+                {
+                    RestoreHealth_Others(msg);
+                }
+                break;
         }
 
     }
@@ -46,8 +53,9 @@ public abstract class LivingEntity : NetObject
 
     public event Action Event_invoke_detach_from_entity;
     public event Action Event_on_attached_entitys_GetDamaged;
+    public event Action Event_on_RestoreHealth;
 
-    public virtual void OnDamage_MasterClient(float damage, LivingEntity fromEntity)
+    public void OnDamage_MasterClient(float damage, LivingEntity fromEntity)
     {
 
         health -= damage;
@@ -94,7 +102,7 @@ public abstract class LivingEntity : NetObject
         this.health = msg.Pop_float();
         //Debug.Log($"LivingEntity : Sync_health_others : {health}");
     }
-    public virtual void OnDamage_Others(CPacket msg)
+    public void OnDamage_Others(CPacket msg)
     {
         OnDamage((LivingEntity)NetObjectManager.instance.Get_netObject(msg.Pop_byte(), msg.Pop_byte()));
     }
@@ -117,7 +125,7 @@ public abstract class LivingEntity : NetObject
 
 
 
-    public  void InvokeDamageToMaster_Others(LivingEntity fromEntity, LivingEntity attackedEntity, float damage)
+    public void InvokeDamageToMaster_Others(LivingEntity fromEntity, LivingEntity attackedEntity, float damage)
     {
         CPacket send_msg = CPacket.Pop_forCreate();
         send_msg.Push((byte)InGameAction_server.Object_transfer_copy);
@@ -145,5 +153,46 @@ public abstract class LivingEntity : NetObject
     {
         //Debug.Log($"LivingEntity : InvokeDamage_Master Check");
         attackedEntity.OnDamage_MasterClient(damage, this);
+    }
+
+    public void RestoreHealth_MasterCient(float restoringHealth)
+    {
+        health = Mathf.Min(maxHealth, health += restoringHealth);
+        // Sync_health_others
+        {
+            CPacket send_msg = CPacket.Pop_forCreate();
+            send_msg.Push((byte)InGameAction_server.Object_transfer_copy);
+            send_msg.Push((byte)pool_code);
+            send_msg.Push((byte)id);
+            send_msg.Push((byte)NetEnum__31_60.Sync_health_others);
+            send_msg.Push((byte)RoomMember.Others);
+
+            send_msg.Push((short)4);
+
+            send_msg.Push((float)health);
+
+            CNetworkManager.instance.Send(send_msg);
+        }
+        // RestoreHEalth_Others
+        {
+            CPacket send_msg = CPacket.Pop_forCreate();
+            send_msg.Push((byte)InGameAction_server.Object_transfer_copy);
+            send_msg.Push((byte)pool_code);
+            send_msg.Push((byte)id);
+            send_msg.Push((byte)NetEnum__31_60.RestoreHealth_Others);
+            send_msg.Push((byte)RoomMember.Others);
+
+            send_msg.Push((short)0);
+        }
+
+        RestoreHealth();
+    }
+    public void RestoreHealth_Others(CPacket msg)
+    {
+        RestoreHealth();
+    }
+    public virtual void RestoreHealth()
+    {
+        Event_on_RestoreHealth?.Invoke();
     }
 }

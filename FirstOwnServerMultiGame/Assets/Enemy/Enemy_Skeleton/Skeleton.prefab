@@ -103,7 +103,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   instanType: 2
-  netObjectCode_forScenePlaced_Sync: 2
+  netObjectCode_forScenePlaced_Sync: 124
 --- !u!136 &8676313833487302400
 CapsuleCollider:
   m_ObjectHideFlags: 0

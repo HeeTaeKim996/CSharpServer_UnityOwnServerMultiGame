@@ -20,6 +20,7 @@ namespace GameServer
         private string room_name;
         private NetObjectPoolManager objectPoolManager;
         private byte room_id_index = 0;
+        private bool isOnGame = false;
 
         public CGameRoom(string room_name)
         {
@@ -57,10 +58,14 @@ namespace GameServer
             remove_user.on_exit_room(this);
             game_users.Remove(remove_user);
 
-            Inform_updated_room_info();
+            if (!isOnGame)
+            {
+                Inform_updated_room_info();
+            }
         }
         private void Inform_updated_room_info()
         {
+            Console.WriteLine("CGameRoom : Inform_update_room_info__Invoked Check");
             foreach(CGameUser game_user in game_users)
             {
                 CPacket msg = CPacket.Pop_forCreate();
@@ -124,7 +129,8 @@ namespace GameServer
                         Console.WriteLine($"CGameRoom 디버그 용도. load_completed_users : {load_completed_users}, room_user_count : {user_count}");
                         if (load_completed_users == user_count)
                         {
-                            Console.WriteLine("CGameRoom 임시 용도. 모든 유저가 준비됨 확인");
+                            Console.WriteLine("CGameRoom : 모든 유저가 준비됨 확인");
+                            isOnGame = true;
                             objectPoolManager = new NetObjectPoolManager(this);
 
                             CPacket send_msg = CPacket.Pop_forCreate();
@@ -199,7 +205,6 @@ namespace GameServer
                         On_object_instantiated(ownerCode, objectCode, pool_code, id, position, rotation);
                     }
                     break;
-
                 case InGameAction_server.Destroy:
                     {
                         byte pool_code = msg.Pop_byte();
@@ -306,6 +311,23 @@ namespace GameServer
             }
         }
 
+        private void Seal_the_room()
+        {
+            is_room_sealed = true;
+            Program.cGameServer.Inform_rooms_info();
+        }
+
+        public void QuitThePlayingGame_on_masterClient_quit(IPeer masterClientsPeer)
+        {
+            Remove_user((CGameUser)masterClientsPeer);
+
+            CPacket send_msg = CPacket.Pop_forCreate();
+            send_msg.Push((byte)InGameAction_client.ETC);
+            send_msg.Push((byte)Ga_c_Etc_action.BackToLobby);
+            Cast_others(send_msg, masterClientsPeer);
+
+            Program.cGameServer.Remove_room(room_name);
+        }
 
         private void Cast_all(CPacket send_msg)
         {
@@ -316,11 +338,11 @@ namespace GameServer
             CPacket.Push_back(send_msg);
         }
 
-        private void Cast_others(CPacket send_msg, IPeer owner)
+        private void Cast_others(CPacket send_msg, IPeer excepted)
         {
             foreach(IPeer game_user in game_users)
             {
-                if (owner == game_user) continue;
+                if (excepted == game_user) continue;
 
                 game_user.Send(send_msg);
             }
@@ -351,11 +373,5 @@ namespace GameServer
             }
             CPacket.Push_back(send_msg);
         } 
-
-        private void Seal_the_room()
-        {
-            is_room_sealed = true;
-            Program.cGameServer.Inform_rooms_info();
-        }
     }
 }
