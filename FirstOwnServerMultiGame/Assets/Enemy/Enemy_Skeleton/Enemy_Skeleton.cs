@@ -36,7 +36,7 @@ public class Enemy_Skeleton : FieldEnemy
     private string currentAnimation;
     private Coroutine currentAction;
     private IEnumerator nextAction;
-    private float movementSpeed = 4f;
+    private float movementSpeed = 0.3f;
 
     private float damage = 15f;
 

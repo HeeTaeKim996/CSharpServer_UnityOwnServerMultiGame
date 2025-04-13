@@ -12,6 +12,7 @@ public class NetObjectManager : MonoBehaviour
     public PlayerHealth player_prefab;
     public Enemy_Skeleton enemy_skeleton_prefab;
     public Item_health item_health_prefab;
+    public PlayerMissile playersMissile_prefab;
 
     private byte scene_object_index = 0;
     
@@ -79,6 +80,11 @@ public class NetObjectManager : MonoBehaviour
             case NetObjectCode.Item_health:
                 {
                     netObject = Instantiate(item_health_prefab, position, Quaternion.Euler(rotation));
+                }
+                break;
+            case NetObjectCode.PlayersMissile:
+                {
+                    netObject = Instantiate(playersMissile_prefab, position, Quaternion.Euler(rotation));
                 }
                 break;
             default:

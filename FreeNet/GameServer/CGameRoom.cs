@@ -268,6 +268,61 @@ namespace GameServer
                         }
                     }
                     break;
+
+                case InGameAction_server.Instan_transfer_copy:
+                    {
+                        byte ownerCode = msg.Pop_byte();
+                        byte netObjectCode = msg.Pop_byte();
+                        NetVector3 position = new NetVector3(msg.Pop_float(), msg.Pop_float(), msg.Pop_float());
+                        NetVector3 rotation = new NetVector3(msg.Pop_float(), msg.Pop_float(), msg.Pop_float());
+
+                        (byte instan_pool_code, byte instan_id) = objectPoolManager.Add_object();
+
+                        On_object_instantiated(ownerCode, netObjectCode, instan_pool_code, instan_id, position, rotation);
+
+
+                        byte fetchers_pool_code = msg.Pop_byte();
+                        byte fetchers_id = msg.Pop_byte();
+                        byte fetchers_byteNetEnum = msg.Pop_byte();
+                        RoomMember roomMember = (RoomMember)msg.Pop_byte();
+
+                        short copy_length = msg.Pop_int16();
+
+                        // Transfer To Target about instantiated object info
+                        {
+                            CPacket send_msg2 = CPacket.Pop_forCreate();
+                            send_msg2.Push((byte)InGameAction_client.Object_transfer);
+                            send_msg2.Push((byte)fetchers_pool_code);
+                            send_msg2.Push((byte)fetchers_id);
+                            send_msg2.Push((byte)fetchers_byteNetEnum);
+                            send_msg2.Push((byte)instan_pool_code);
+                            send_msg2.Push((byte)instan_id);
+
+                            send_msg2.Copy_buffer_with_startPoint(msg.buffer, msg.position, copy_length);
+
+                            switch (roomMember)
+                            {
+                                case RoomMember.MasterClient:
+                                    {
+                                        Cast_MasterClient(send_msg2);
+                                    }
+                                    break;
+                                case RoomMember.Own:
+                                    {
+                                        Cast_Own(send_msg2, msg.owner);
+                                    }
+                                    break;
+                                default:
+                                    {
+                                        throw new ArgumentNullException($"CGameRoom : 디펄트 수신 감지. RoomMemeber : {roomMember}");
+                                    }
+                            }
+
+                            Console.WriteLine("CGameRoom : @@@@@@@@@@@@@@@@@@@@@@IntantFetcher Check@@@@@@@@@@@@@@@@@@@@@@@@@");
+                        }
+
+                    }
+                    break;
                 default:
                     {
                         throw new ArgumentNullException($"CGameRoom : InGameAction에서 디펄트 수신 {inGameAction.ToString()}");

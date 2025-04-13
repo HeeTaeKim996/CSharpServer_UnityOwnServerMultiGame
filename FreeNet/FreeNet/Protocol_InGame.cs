@@ -13,6 +13,8 @@ namespace FreeNet
         Destroy = 123,
 
         Object_transfer_copy = 124,
+
+        Instan_transfer_copy = 125,
     }
 
     public enum InGameAction_client : byte
@@ -33,10 +35,12 @@ namespace FreeNet
     }
     public enum NetObjectCode : byte 
     {
+        // @@ NetObjectPoolManager에서 pool을 byte로만 관리한다면, 굳이 FreeNet에 배치하지 않고, 유니티의 클라이언트 내에서 처리해도 됨. 일단 만들어서 그대로 사용함
         None = 122,
         Player = 123,
         Enemy_skeleton = 124,
         Item_health = 125,
+        PlayersMissile = 126
     }
 
     public struct NetVector3

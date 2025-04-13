@@ -14,6 +14,8 @@ public class PlayerHealth : LivingEntity
         Animation_Sync = 62,
 
         Use_item = 63,
+
+        Invoke_Set_missle_MasterClient = 64,
     }
     
     public override void NetMethod(CPacket msg)
@@ -30,6 +32,11 @@ public class PlayerHealth : LivingEntity
             case NetEnum__61_90.Animation_Sync:
                 {
                     playerMovement.Sync_Animation_Others(msg);
+                }
+                break;
+            case NetEnum__61_90.Invoke_Set_missle_MasterClient:
+                {
+                    playerMovement.Invoke_Set_missle_MasterClient(msg);
                 }
                 break;
         }

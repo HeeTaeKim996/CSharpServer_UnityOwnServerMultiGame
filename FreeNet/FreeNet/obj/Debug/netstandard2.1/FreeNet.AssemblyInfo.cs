@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FreeNet")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+11669a002f8b65756e0609b16b4caf793389ba45")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a38819f0a48fc794b2311f164d8b41362cecd21d")]
 [assembly: System.Reflection.AssemblyProductAttribute("FreeNet")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FreeNet")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

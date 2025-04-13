@@ -24,6 +24,13 @@ public class PlayerMovement : MonoBehaviour
     private LayerMask itemLayer;
     private float damage = 20f;
 
+    public enum PlayerActionState
+    {
+        Normal,
+        Missle
+    }
+    private PlayerActionState playerActionState;
+    private LineRenderer lineRenderer;
 
     public enum AnimationEnum : byte
     {
@@ -39,11 +46,16 @@ public class PlayerMovement : MonoBehaviour
         playerRigidbody = GetComponent<Rigidbody>();
         playerAnimator = GetComponent<Animator>();
         playerPointerAdmin = GetComponent<PlyaerPointerAdmin>();
+        lineRenderer = GetComponent<LineRenderer>();
     }
     private void Start()
     {
         enemyLayer = LayerMask.GetMask("Enemy");
         itemLayer = LayerMask.GetMask("Item");
+
+        playerActionState = PlayerActionState.Normal;
+
+        lineRenderer.enabled = false;
     }
     private void Update()
     {
@@ -94,37 +106,103 @@ public class PlayerMovement : MonoBehaviour
     public void On_touch_start(Vector2 touchPosition)
     {
         if (playerHealth.dead) return;
-        Ray ray = Camera.main.ScreenPointToRay(touchPosition);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
+
+        if(playerActionState == PlayerActionState.Normal)
         {
-            if (((1 << hit.collider.gameObject.layer) & enemyLayer) != 0)
+            Ray ray = Camera.main.ScreenPointToRay(touchPosition);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit))
             {
-                if(currentAction != null)
+                if (((1 << hit.collider.gameObject.layer) & enemyLayer) != 0)
                 {
-                    StopCoroutine(currentAction);
+                    if (currentAction != null)
+                    {
+                        StopCoroutine(currentAction);
+                    }
+                    currentAction = StartCoroutine(AttackEnemy(hit.collider.gameObject.GetComponent<Enemy>()));
                 }
-                currentAction = StartCoroutine(AttackEnemy(hit.collider.gameObject.GetComponent<Enemy>()));
+                else if (((1 << hit.collider.gameObject.layer) & itemLayer) != 0)
+                {
+                    if (currentAction != null)
+                    {
+                        StopCoroutine(currentAction);
+                    }
+                    currentAction = StartCoroutine(GetItem(hit.collider.gameObject.GetComponent<Item>()));
+                }
+                else
+                {
+                    Vector3 hitPosition = hit.point;
+                    if (currentAction != null)
+                    {
+                        StopCoroutine(currentAction);
+                    }
+                    currentAction = StartCoroutine(MoveToPoint(new Vector2(hitPosition.x, hitPosition.z)));
+                }
             }
-            else if( ( (1 << hit.collider.gameObject.layer) & itemLayer) != 0)
+        }
+        else if(playerActionState == PlayerActionState.Missle)
+        {
+            if (currentAction != null)
             {
-                if(currentAction != null)
-                {
-                    StopCoroutine(currentAction);
-                }
-                currentAction = StartCoroutine(GetItem(hit.collider.gameObject.GetComponent<Item>()));
+                StopCoroutine(currentAction);
+                currentAction = null;
             }
-            else
+        }
+
+    }
+    public void On_touching(Vector2 touchPosition)
+    {
+        if (playerHealth.dead) return;
+
+        if(playerActionState == PlayerActionState.Normal)
+        {
+
+        }
+        else if(playerActionState == PlayerActionState.Missle)
+        {
+            Ray ray = Camera.main.ScreenPointToRay(touchPosition);
+            RaycastHit hit;
+            if(Physics.Raycast(ray, out hit))
             {
-                Vector3 hitPosition = hit.point;
-                if (currentAction != null)
-                {
-                    StopCoroutine(currentAction);
-                }
-                currentAction = StartCoroutine(MoveToPoint(new Vector2(hitPosition.x, hitPosition.z)));
+                Vector3 lookingVector = hit.point - transform.position;
+                lookingVector.y = 0;
+
+                transform.rotation = Quaternion.LookRotation(lookingVector);
+                lineRenderer.SetPosition(0, transform.position);
+                lineRenderer.SetPosition(1, transform.position + lookingVector * 10f);
+                lineRenderer.enabled = true;
             }
         }
     }
+    public void On_touch_end(Vector2 touchPosition)
+    {
+        if (playerHealth.dead) return;
+
+        if(playerActionState == PlayerActionState.Normal)
+        {
+
+        }
+        else if(playerActionState == PlayerActionState.Missle)
+        {
+            CPacket send_msg = CommonMethods.Instan_fetcher_helper(playerHealth.owner, NetObjectCode.PlayersMissile, transform.position, transform.eulerAngles, 
+                playerHealth.pool_code, playerHealth.id, (byte)PlayerHealth.NetEnum__61_90.Invoke_Set_missle_MasterClient, RoomMember.MasterClient);
+
+            send_msg.Push((short)20);
+
+            Vector3 forwardDirection = transform.forward;
+            send_msg.Push((float)forwardDirection.x);
+            send_msg.Push((float)forwardDirection.y);
+            send_msg.Push((float)forwardDirection.z);
+            send_msg.Push((float)30f);
+            send_msg.Push((float)5f);
+
+            CNetworkManager.instance.Send(send_msg);
+
+            // if(CPAcketManaager.instance.IsMasterClient 이 true이면, COmmonMethods.Instaitate  -> 직접 매서드 처리 도 될까 생각해봤는데, 서버에 생성하라고 보내고, 생성이 된 후에, 매서드를 처리한다는 보장을 못하기 때문에, 동일한 방법으로 처리
+            lineRenderer.enabled = false;
+        }
+    }
+
 
     public IEnumerator MoveToPoint(Vector2 goalPosition)
     {
@@ -310,6 +388,19 @@ public class PlayerMovement : MonoBehaviour
     }
     
 
+    public void Invoke_Set_missle_MasterClient(CPacket msg)
+    {
+        byte pool_code = msg.Pop_byte();
+        byte id = msg.Pop_byte();
+        Vector3 direction = new Vector3(msg.Pop_float(), msg.Pop_float(), msg.Pop_float());
+        float damage = msg.Pop_float();
+        float destroyTime = msg.Pop_float();
+
+        PlayerMissile playerMissile = (PlayerMissile)NetObjectManager.instance.Get_netObject(pool_code, id);
+        playerMissile.GetFire_MasterClient(playerHealth, direction, damage, destroyTime);
+    }
+
+
 
     public void BaseAnimationCrossFade_Mine(AnimationEnum animationEnum, float blendTime)
     {
@@ -337,5 +428,16 @@ public class PlayerMovement : MonoBehaviour
         playerAnimator.CrossFade(animationName, msg.Pop_float(), 0, msg.Pop_float());
     }
 
-    
+    public void Switch_PlayerActionState(PlayerActionState playerActionState)
+    {
+        if(this.playerActionState == playerActionState)
+        {
+            this.playerActionState = PlayerActionState.Normal;
+        }
+        else
+        {
+            this.playerActionState = playerActionState;
+
+        }
+    }
 }

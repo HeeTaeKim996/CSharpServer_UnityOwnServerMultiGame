@@ -69,4 +69,24 @@ public static class CommonMethods
         send_msg.Push((float)rot_z);
         CNetworkManager.instance.Send(send_msg);
     }
+
+    public static CPacket Instan_fetcher_helper(byte ownerCode, NetObjectCode netObjectCode, Vector3 position, Vector3 eulerAngles, byte fetchers_pool_code, byte fetchers_id, byte fetchers_byteNetEnum, RoomMember roomMember)
+    {
+        CPacket send_msg = CPacket.Pop_forCreate();
+        send_msg.Push((byte)InGameAction_server.Instan_transfer_copy);
+        send_msg.Push((byte)ownerCode);
+        send_msg.Push((byte)netObjectCode);
+        send_msg.Push((float)position.x);
+        send_msg.Push((float)position.y);
+        send_msg.Push((float)position.z);
+        send_msg.Push((float)eulerAngles.x);
+        send_msg.Push((float)eulerAngles.y);
+        send_msg.Push((float)eulerAngles.z);
+        send_msg.Push((byte)fetchers_pool_code);
+        send_msg.Push((byte)fetchers_id);
+        send_msg.Push((byte)fetchers_byteNetEnum);
+        send_msg.Push((byte)roomMember);
+
+        return send_msg;
+    }
 }
